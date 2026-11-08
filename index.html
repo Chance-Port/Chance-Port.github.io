@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Chance | 3D artist</title>
-<meta name="description" content="Chance is a 3D artist from Egypt making assets, environments and models in Blender: stylized, hand-painted, cel-shaded and realistic. Open for commissions.">
+<meta name="description" content="Chance is a 3D artist from Egypt making assets, environments and models in Blender, Substance Painter and Roblox Studio. Open for commissions.">
 <meta property="og:title" content="Chance | 3D artist">
 <meta property="og:description" content="3D assets, environments and models. Open for commissions.">
 <meta property="og:type" content="website">
-<meta name="theme-color" content="#E9E2D4">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M4 15 16 5l12 10v13H4Z' fill='%23B08D62' stroke='%232A1E18' stroke-width='2.5' stroke-linejoin='round'/><path d='M13 28v-8h6v8' fill='%232A1E18'/></svg>">
+<meta name="theme-color" content="#2B2F2A">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='3' width='26' height='26' fill='%23E8DCC4' stroke='%23B8935A' stroke-width='4'/><path d='M16 8l7 4v8l-7 4-7-4v-8z' fill='%237E2320' stroke='%231E1A16' stroke-width='1.5'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=Gochi+Hand&display=swap" rel="stylesheet">
@@ -17,17 +17,21 @@
 </head>
 <body>
 
-<!-- loading screen -->
 <div class="loader" aria-hidden="true">
-  <svg viewBox="0 0 120 110" class="loader-house">
-    <path d="M14 52 60 14l46 38" />
-    <path d="M22 46v52h76V46" />
-    <path d="M50 98V68h20v30" />
-    <path d="M74 26v-10h10v18" />
+  <svg viewBox="0 0 80 140" class="candle">
+    <circle class="candle-glow" cx="40" cy="34" r="30"/>
+    <path class="candle-flame" d="M40 14C46 26 50 32 47 40C45 45 35 45 33 40C30 32 34 26 40 14Z"/>
+    <path d="M40 44v8" class="candle-wick"/>
+    <path d="M28 52h24v62H28z" class="candle-body"/>
+    <path d="M28 60c6 3 9-2 12 4" class="candle-drip"/>
+    <path d="M16 114h48l-4 10H20z" class="candle-dish"/>
   </svg>
+  <p class="loader-text">lighting up</p>
 </div>
 
-<div class="cursor" aria-hidden="true"><span class="cursor-label">Open</span></div>
+<div class="glow" aria-hidden="true"></div>
+<div class="cursor" aria-hidden="true"><span class="cursor-label">Flip</span></div>
+<div class="progress" aria-hidden="true"></div>
 
 <a class="skip" href="#main">Skip to content</a>
 
@@ -46,39 +50,31 @@
 
 <main id="main">
 
-  <!-- HERO -->
   <section class="hero" id="top">
     <div class="hero-text">
       <h1 class="hero-name" data-name>Chance</h1>
       <p class="hero-role"><span data-role>3D artist</span> from <span data-location>Egypt</span></p>
       <p class="hero-intro" data-intro></p>
       <div class="hero-actions">
-        <a href="#work" class="btn btn-ink">See my work</a>
+        <a href="#work" class="btn btn-red">See my work</a>
         <a href="#contact" class="btn btn-line">Commission me</a>
       </div>
     </div>
-    <figure class="hero-stage">
-      <canvas id="house" aria-label="A small hand-hatched 3D house, rendered live. Drag to turn it." role="img"></canvas>
-      <figcaption class="note hero-note">
-        <svg viewBox="0 0 50 50" class="note-arrow" aria-hidden="true"><path d="M8 46C10 28 20 14 40 6M40 6l-12 0M40 6l-3 11"/></svg>
-        rendered live, drag to spin it
-      </figcaption>
-    </figure>
+    <div class="tool-wall" data-tools aria-label="Software I use"></div>
   </section>
 
-  <!-- WORK -->
   <section class="section work" id="work">
     <div class="section-head">
-      <h2 class="section-title">Work<svg class="ink-underline" viewBox="0 0 300 16" preserveAspectRatio="none" aria-hidden="true"><path d="M3 10C60 4 140 3 297 8"/></svg></h2>
+      <h2 class="section-title" data-split>Work</h2>
+      <p class="note section-note">click a frame to flip it</p>
       <div class="filters" role="toolbar" aria-label="Filter projects" hidden></div>
     </div>
-    <div class="grid" id="grid"></div>
+    <div class="wall" id="grid"></div>
   </section>
 
-  <!-- ABOUT -->
   <section class="section about" id="about">
     <div class="section-head">
-      <h2 class="section-title">About<svg class="ink-underline" viewBox="0 0 300 16" preserveAspectRatio="none" aria-hidden="true"><path d="M3 9C80 13 170 3 297 7"/></svg></h2>
+      <h2 class="section-title" data-split>About</h2>
     </div>
     <div class="about-grid">
       <div class="about-bio">
@@ -87,7 +83,8 @@
         <ol class="process" data-process></ol>
       </div>
       <aside class="about-side">
-        <div class="id-card reveal">
+        <div class="placard pop">
+          <p class="placard-title" data-name-plain>Chance</p>
           <dl class="facts" data-facts></dl>
         </div>
         <h3 class="sub-title">So far</h3>
@@ -96,34 +93,32 @@
     </div>
   </section>
 
-  <!-- SKILLS -->
   <section class="section skills" id="skills">
     <div class="section-head">
-      <h2 class="section-title">Skills<svg class="ink-underline" viewBox="0 0 300 16" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C90 3 200 13 297 9"/></svg></h2>
+      <h2 class="section-title" data-split>Skills</h2>
     </div>
     <div class="skills-wrap" data-skills></div>
   </section>
 
-  <!-- CONTACT -->
   <section class="contact" id="contact">
     <div class="contact-inner">
-      <h2 class="contact-title">Have a model or scene in mind?</h2>
+      <h2 class="contact-title" data-split>Have a model or scene in mind?</h2>
       <p class="contact-text">I'm open to commissions and collaborations. Send me a message on Discord or X with what you need and we'll work it out from there.</p>
       <div class="contact-links">
-        <button class="contact-card" type="button" data-copy-discord>
-          <span class="contact-card-label">Discord</span>
-          <span class="contact-card-value" data-discord></span>
-          <span class="contact-card-action" data-copy-status>Copy username</span>
+        <button class="tag" type="button" data-copy-discord>
+          <span class="tag-label">Discord</span>
+          <span class="tag-value" data-discord></span>
+          <span class="tag-action" data-copy-status>Copy username</span>
         </button>
-        <a class="contact-card" data-x href="#" target="_blank" rel="noopener">
-          <span class="contact-card-label">X</span>
-          <span class="contact-card-value" data-x-handle></span>
-          <span class="contact-card-action">Open profile</span>
+        <a class="tag" data-x href="#" target="_blank" rel="noopener">
+          <span class="tag-label">X</span>
+          <span class="tag-value" data-x-handle></span>
+          <span class="tag-action">Open profile</span>
         </a>
-        <a class="contact-card" data-email href="#" hidden>
-          <span class="contact-card-label">Email</span>
-          <span class="contact-card-value" data-email-value></span>
-          <span class="contact-card-action">Write an email</span>
+        <a class="tag" data-email href="#" hidden>
+          <span class="tag-label">Email</span>
+          <span class="tag-value" data-email-value></span>
+          <span class="tag-action">Write an email</span>
         </a>
       </div>
       <p class="note contact-clock" data-clock></p>
@@ -135,7 +130,26 @@
   </section>
 </main>
 
-<!-- PROJECT VIEW -->
+<!-- flipped frame -->
+<div class="flip" id="flip" hidden>
+  <div class="flip-backdrop"></div>
+  <div class="flipper" role="dialog" aria-modal="true" aria-labelledby="flip-title">
+    <div class="face face-front"></div>
+    <div class="face face-back">
+      <span class="tape tape-l" aria-hidden="true"></span><span class="tape tape-r" aria-hidden="true"></span>
+      <button class="flip-close" type="button" aria-label="Close">&times;</button>
+      <p class="back-cat" data-f-cat></p>
+      <h2 class="back-title" id="flip-title" data-f-title></h2>
+      <div class="back-desc" data-f-desc></div>
+      <div class="back-actions">
+        <button class="btn btn-red" type="button" data-f-full>View full project</button>
+        <a class="btn btn-ink-line" data-f-link target="_blank" rel="noopener">View on X</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- full project view -->
 <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="viewer-title" hidden>
   <div class="viewer-panel">
     <button class="viewer-close" type="button" aria-label="Close project">Close</button>
@@ -145,7 +159,7 @@
         <p class="viewer-cat" data-v-cat></p>
         <h2 id="viewer-title" class="viewer-title" data-v-title></h2>
         <div class="viewer-desc" data-v-desc></div>
-        <a class="btn btn-ink viewer-link" data-v-link target="_blank" rel="noopener">View the post on X</a>
+        <a class="btn btn-red viewer-link" data-v-link target="_blank" rel="noopener">View the post on X</a>
       </div>
     </div>
     <div class="viewer-nav">

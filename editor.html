@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=Gochi+Hand&display=swap" rel="stylesheet">
 <style>
-  :root { --paper:#E9E2D4; --paper-2:#DCD1BE; --caramel:#B08D62; --olive:#6E6A55; --rust:#7C4A37; --ink:#2A1E18; --soft:#5B4739;
+  :root { --paper:#E9E2D4; --paper-2:#DCD1BE; --caramel:#B8935A; --olive:#6E6A55; --rust:#7E2320; --ink:#2A1E18; --soft:#5B4739;
     --f:"Bricolage Grotesque", Arial, sans-serif; --hand:"Gochi Hand", cursive; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--f); line-height: 1.5; }
@@ -80,7 +80,7 @@
   try { S = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { S = null; }
   if (!S) S = JSON.parse(JSON.stringify(original));
   S.profile = S.profile || {}; S.contact = S.contact || {};
-  ["timeline", "skills", "projects"].forEach(k => S[k] = S[k] || []);
+  ["timeline", "skills", "projects", "tools"].forEach(k => S[k] = S[k] || []);
   ["bio", "facts", "process"].forEach(k => S.profile[k] = S.profile[k] || []);
 
   const app = document.getElementById("app");
@@ -170,6 +170,12 @@
       rows(S.timeline, ["when", "text"], ["When (e.g. 2023)", "What happened"], "Add timeline entry", { when: "", text: "" })
     ));
 
+    // software frames at the top
+    app.append(h("section", {},
+      h("h2", { text: "Software (top of the page)" }),
+      h("p", { class: "help", text: "Up to 3. Leave the image empty to use the hand-drawn sketch, or type a path like images/blender.png" }),
+      rows(S.tools, ["name", "image"], ["Software name", "Image path (optional)"], "Add software", { name: "", image: "" })));
+
     // skills
     const skillWrap = h("div");
     const drawSkills = () => {
@@ -252,7 +258,7 @@
     try { localStorage.removeItem(KEY); } catch (e) {}
     S = JSON.parse(JSON.stringify(original));
     S.profile = S.profile || {}; S.contact = S.contact || {};
-    ["timeline", "skills", "projects"].forEach(k => S[k] = S[k] || []);
+    ["timeline", "skills", "projects", "tools"].forEach(k => S[k] = S[k] || []);
     ["bio", "facts", "process"].forEach(k => S.profile[k] = S.profile[k] || []);
     render(); status.textContent = "Back to the live content";
   });

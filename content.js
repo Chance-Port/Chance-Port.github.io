@@ -1,8 +1,7 @@
 /* =========================================================
    CONTENT FILE: everything on the site comes from here.
-   Edit text between the quotes, keep the commas.
-   Easier way: open editor.html, change things, click
-   "Download content.js", then upload it to GitHub.
+   Easiest way to edit: open editor.html, change things,
+   click "Download content.js", then upload it to GitHub.
    ========================================================= */
 
 window.SITE = {
@@ -30,6 +29,14 @@ window.SITE = {
     ]
   },
 
+  /* Software shown as framed pictures at the top.
+     image: leave "" for the hand-drawn sketch, or "images/blender-logo.png" */
+  tools: [
+    { name: "Blender", image: "" },
+    { name: "Substance Painter", image: "" },
+    { name: "Roblox Studio", image: "" }
+  ],
+
   timeline: [
     { when: "2023", text: "Started building and environment art" },
     { when: "2024", text: "Started modeling in Blender" },
@@ -37,7 +44,7 @@ window.SITE = {
   ],
 
   skills: [
-    { group: "Software", items: ["Blender", "Substance Painter"] },
+    { group: "Software", items: ["Blender", "Substance Painter", "Roblox Studio"] },
     { group: "Texturing & shading", items: ["Hand-painted texturing", "Stylized texturing", "Cel shading", "Anime-inspired shading", "Realistic texturing", "Semi-realistic texturing"] },
     { group: "3D modeling", items: ["Hard-surface modeling", "General 3D modeling", "Sculpting", "Retopology", "UVs & topology optimization"] },
     { group: "Also", items: ["Building & environment art", "Rigging", "Animation | still learning"] }
@@ -54,7 +61,7 @@ window.SITE = {
      image:   "images/my-render.jpg"  (upload the file into an images folder)
      gallery: ["images/a.jpg", "images/b.jpg"]  extra images, optional
      video:   "images/turntable.mp4" or a YouTube link, optional
-     featured: true makes it a big panel at the top of the grid */
+     featured: true makes it a big frame at the top of the wall */
   projects: [
     { title: "Project 01", category: "3D art", description: "", image: "", gallery: [], video: "", link: "https://fixupx.com/Chancy2476/status/2117361917736173888", featured: true },
     { title: "Project 02", category: "3D art", description: "", image: "", gallery: [], video: "", link: "https://fixupx.com/Chancy2476/status/2113628601736184142", featured: false },

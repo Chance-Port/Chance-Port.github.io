@@ -3,6 +3,7 @@
   "use strict";
   document.documentElement.classList.add("js");
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const finePointer = matchMedia("(pointer: fine)").matches;
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -15,10 +16,10 @@
         SITE = JSON.parse(saved);
         const tag = document.createElement("div");
         tag.textContent = "Preview: editor changes, not live yet";
-        tag.style.cssText = "position:fixed;bottom:1rem;left:1rem;z-index:140;background:#2A1E18;color:#E9E2D4;padding:.5rem .9rem;font-weight:700";
+        tag.style.cssText = "position:fixed;bottom:1rem;left:1rem;z-index:190;background:#7E2320;color:#E8DCC4;padding:.5rem .9rem;font-weight:700";
         document.body.appendChild(tag);
       }
-    } catch (e) { /* storage unavailable: show the normal content */ }
+    } catch (e) { /* storage unavailable: show normal content */ }
   }
   const P = SITE.profile || {};
   const C = SITE.contact || {};
@@ -29,12 +30,44 @@
     for (const k in attrs || {}) {
       if (k === "class") n.className = attrs[k];
       else if (k === "text") n.textContent = attrs[k];
+      else if (k === "html") n.innerHTML = attrs[k];
+      else if (k === "style") n.style.cssText = attrs[k];
       else n.setAttribute(k, attrs[k]);
     }
     kids.flat().forEach(c => c != null && n.append(c));
     return n;
   }
   const setText = (sel, v) => $$(sel).forEach(n => { n.textContent = v; });
+
+  /* ---------- hand-inked sketches (original drawings) ---------- */
+  let sid = 0;
+  function sketch(kind) {
+    const u = "k" + (++sid);
+    const S = 'stroke="#1E1A16" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"';
+    const defs = `<defs><pattern id="${u}h" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V5" stroke="#1E1A16" stroke-width="1.3"/></pattern><pattern id="${u}x" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V5M0 0H5" stroke="#1E1A16" stroke-width="1.1"/></pattern></defs>`;
+    const face = (d, fill) => `<path d="${d}" fill="#E8DCC4"/><path d="${d}" fill="${fill}" ${S}/>`;
+    const cube = (t, topFill) => `<g transform="${t}">${face("M50 18 80 34 50 50 20 34Z", topFill || "#E8DCC4")}${face("M20 34 50 50 50 84 20 68Z", `url(#${u}h)`)}${face("M50 50 80 34 80 68 50 84Z", `url(#${u}x)`)}</g>`;
+    let body;
+    if (kind === "mesh") {
+      const dots = [[50, 18], [80, 34], [50, 50], [20, 34], [20, 68], [50, 84], [80, 68]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.4" fill="#7E2320" stroke="#1E1A16" stroke-width="1.4"/>`).join("");
+      body = cube("") + `<path d="M35 26 65 42M65 26 35 42" stroke="#1E1A16" stroke-width="1.2" stroke-dasharray="3 3"/>` + dots;
+    } else if (kind === "brush") {
+      body = `<path d="M10 86C26 72 40 94 56 82S80 70 92 80" fill="none" stroke="#7E2320" stroke-width="7" stroke-linecap="round"/>
+        <g transform="rotate(40 50 50)">
+          <rect x="44" y="50" width="12" height="44" rx="5" fill="#E8DCC4"/><rect x="44" y="50" width="12" height="44" rx="5" fill="url(#${u}h)" ${S}/>
+          <path d="M43 36h14v14H43z" fill="#D8C7A5" ${S}/><path d="M43 41h14M43 45h14" stroke="#1E1A16" stroke-width="1.2"/>
+          <path d="M43 36C41 24 46 14 50 6 54 14 59 24 57 36Z" fill="#1E1A16" ${S}/>
+          <path d="M48 10C47 18 47 26 48 34" stroke="#7E2320" stroke-width="2" fill="none"/>
+        </g>`;
+    } else if (kind === "blocks") {
+      body = cube("translate(2 44) scale(.5)") + cube("translate(32 44) scale(.5)") + cube("translate(17 27) scale(.5)", "#7E2320");
+      body = `<g transform="translate(9 -2) scale(1.25)">${body}</g>`;
+    } else {
+      body = `<g transform="rotate(-35 50 50)"><rect x="42" y="18" width="16" height="58" fill="#E8DCC4"/><rect x="42" y="18" width="16" height="58" fill="url(#${u}h)" ${S}/><path d="M42 76h16L50 94Z" fill="#E8DCC4" ${S}/><path d="M47 88h6L50 94Z" fill="#1E1A16"/><path d="M42 18h16v-6H42z" fill="#7E2320" ${S}/></g>`;
+    }
+    return `<svg viewBox="0 0 100 100" aria-hidden="true">${defs}${body}</svg>`;
+  }
+  const toolKind = name => /blender/i.test(name) ? "mesh" : /substance|paint/i.test(name) ? "brush" : /roblox/i.test(name) ? "blocks" : "pencil";
 
   /* ---------- hero ---------- */
   const name = P.name || "Chance";
@@ -57,12 +90,8 @@
   /* ---------- media helpers ---------- */
   const isVideoFile = s => /\.(mp4|webm|mov)(\?|$)/i.test(s || "");
   const ytId = s => { const m = /(?:youtu\.be\/|[?&]v=|embed\/|shorts\/)([\w-]{11})/.exec(s || ""); return m && m[1]; };
-
   function placeholder(label) {
-    const ph = el("div", { class: "placeholder" });
-    ph.innerHTML = '<svg viewBox="0 0 120 110" aria-hidden="true"><path d="M14 52 60 14l46 38"/><path d="M22 46v52h76V46"/><path d="M50 98V68h20v30"/></svg>';
-    ph.append(el("span", { text: label || "Render coming soon" }));
-    return ph;
+    return el("div", { class: "placeholder", html: sketch("mesh") }, el("span", { text: label || "Render coming soon" }));
   }
   function image(src, alt, eager) {
     const img = el("img", { src, alt: alt || "", loading: eager ? "eager" : "lazy", decoding: "async" });
@@ -72,30 +101,78 @@
   function cover(p) {
     const src = p.image || (p.gallery || [])[0];
     if (src) return image(src, p.title);
-    if (isVideoFile(p.video)) {
-      const v = el("video", { src: p.video, muted: "", loop: "", playsinline: "", autoplay: "", preload: "metadata" });
-      v.muted = true;
-      return v;
-    }
+    if (isVideoFile(p.video)) { const v = el("video", { src: p.video, loop: "", playsinline: "", autoplay: "", preload: "metadata" }); v.muted = true; return v; }
     return placeholder();
   }
+  const FRAMES = ["", "black", "", "wood", "", "black"];
+  const TILTS = [-1.2, .9, -.5, 1.3, -.9, .6];
+  function framed(content, variant, extraMat) {
+    return el("div", { class: "frame " + (variant || "") },
+      el("span", { class: "wire", "aria-hidden": "true" }), el("span", { class: "nail", "aria-hidden": "true" }),
+      el("div", { class: "mat" }, el("div", { class: "art" }, content), extraMat || null));
+  }
+  function whenHung(hang) {
+    hang.addEventListener("animationend", e => { if (e.animationName === "hangIn") hang.classList.add("hung"); if (e.animationName === "swing") hang.classList.remove("swing"); });
+  }
+  function swing(hang) {
+    if (reduce || !hang.classList.contains("hung") || hang.classList.contains("swing")) return;
+    hang.classList.add("swing");
+  }
 
-  /* ---------- work grid ---------- */
+  /* ---------- hero tool wall ---------- */
+  const toolWall = $("[data-tools]");
+  const tools = (SITE.tools || []).filter(t => t && t.name).slice(0, 3);
+  if (!tools.length) toolWall.hidden = true;
+  tools.forEach((t, i) => {
+    const art = t.image ? image(t.image, t.name + " logo", true) : el("div", { html: sketch(toolKind(t.name)), style: "display:contents" });
+    const hang = el("div", { class: "hang", style: `--tilt:${[-1.5, 1.8, -.8][i]}deg` },
+      framed(art, ["", "black", ""][i], el("p", { class: "tool-name", text: t.name })));
+    whenHung(hang);
+    const tool = el("div", { class: "tool", style: `--n:${i}` }, el("div", { class: "sway", style: `--dur:${3.4 + i * .9}s;animation-delay:-${i * 1.3}s` }, hang));
+    tool.addEventListener("pointerenter", () => swing(hang));
+    tool.addEventListener("click", () => swing(hang));
+    toolWall.append(tool);
+  });
+  if (tools.length) {
+    toolWall.append(el("div", { class: "lamp", "aria-hidden": "true", html:
+      `<svg viewBox="0 0 100 150"><circle class="lamp-light" cx="62" cy="52" r="48"/>
+       <rect x="14" y="78" width="14" height="40" rx="4" fill="#7A5A2E" stroke="#1E1A16" stroke-width="2.5"/>
+       <path d="M21 96C21 70 62 76 62 50" fill="none" stroke="#B8935A" stroke-width="5" stroke-linecap="round"/>
+       <path d="M42 50h40l-8-30H50z" fill="#E8DCC4" stroke="#1E1A16" stroke-width="2.5" stroke-linejoin="round"/>
+       <path d="M47 42h30M49 34h26M51 27h22" stroke="#B8935A" stroke-width="1.5"/>
+       <circle cx="62" cy="56" r="5" fill="#F6C66F"/></svg>` }));
+  }
+
+  /* ---------- work wall ---------- */
   const grid = $("#grid");
   const ordered = projects.map((p, i) => ({ p, i })).sort((a, b) => (b.p.featured ? 1 : 0) - (a.p.featured ? 1 : 0));
   if (!projects.length) grid.append(el("p", { class: "grid-empty", text: "New work is on the way." }));
-  ordered.forEach(({ p, i }) => {
-    const frame = el("div", { class: "card-frame reveal" }, el("div", { class: "card-frame-in" }, cover(p)));
-    const card = el("a", { class: "card" + (p.featured ? " featured" : ""), href: "#project-" + (i + 1), "data-index": i, "data-cat": p.category || "" },
-      frame,
-      el("div", { class: "card-meta" },
-        el("h3", { class: "card-title", text: p.title || "Untitled" }),
-        p.category ? el("span", { class: "card-cat", text: p.category }) : null));
-    card.addEventListener("click", e => { e.preventDefault(); openViewer(i, card, true); });
+  ordered.forEach(({ p, i }, n) => {
+    const tiltDeg = TILTS[n % TILTS.length];
+    const tilt = el("div", { class: "tilt" }, framed(cover(p), FRAMES[n % FRAMES.length]));
+    const hang = el("div", { class: "hang", style: `--tilt:${tiltDeg}deg` }, tilt);
+    whenHung(hang);
+    const card = el("a", {
+      class: "card" + (p.featured ? " featured" : ""), href: "#project-" + (i + 1), "data-index": i, "data-cat": p.category || "",
+      "aria-label": (p.title || "Untitled") + ", flip for details",
+      style: `--dy:${p.featured ? 0 : [0, 2.5, 1, 3, .5, 1.8][n % 6]}rem;--d:${(n % 3) * .14}s;--lt:${-tiltDeg}deg`
+    }, hang, el("div", { class: "label" }, el("span", { class: "label-title", text: p.title || "Untitled" }), p.category ? el("span", { class: "label-cat", text: p.category }) : null));
+    card.addEventListener("click", e => { e.preventDefault(); openFlip(i, card); });
+    if (finePointer && !reduce) {
+      const frame = $(".frame", tilt);
+      card.addEventListener("pointerenter", () => swing(hang));
+      card.addEventListener("pointermove", e => {
+        const r = tilt.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+        tilt.style.transform = `perspective(900px) rotateX(${(.5 - y) * 10}deg) rotateY(${(x - .5) * 12}deg) translateZ(12px)`;
+        frame.style.setProperty("--gx", x * 100 + "%");
+        frame.style.setProperty("--gy", y * 100 + "%");
+      });
+      card.addEventListener("pointerleave", () => { tilt.style.transform = ""; });
+    }
     grid.append(card);
   });
 
-  // filters: only shown when there is more than one category
   const cats = [...new Set(projects.map(p => p.category).filter(Boolean))];
   const filterBar = $(".filters");
   if (cats.length > 1) {
@@ -104,69 +181,144 @@
       const b = el("button", { type: "button", "aria-pressed": n === 0 ? "true" : "false", text: c });
       b.addEventListener("click", () => {
         $$("button", filterBar).forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+        let k = 0;
         $$(".card", grid).forEach(card => {
           const show = c === "All" || card.dataset.cat === c;
           card.classList.toggle("hide", !show);
-          if (show && !reduce) card.animate([{ opacity: 0, transform: "translateY(14px)" }, { opacity: 1, transform: "none" }], { duration: 450, easing: "cubic-bezier(.22,.8,.2,1)" });
+          if (show && !reduce) {
+            const h = $(".hang", card);
+            h.classList.remove("hung", "swing");
+            card.style.setProperty("--d", (k++ % 3) * .1 + "s");
+            void h.offsetWidth;
+          }
         });
       });
       filterBar.append(b);
     });
   }
 
-  /* ---------- project viewer ---------- */
+  /* ---------- flip a frame to read its back ---------- */
+  const flip = $("#flip"), flipper = $(".flipper", flip);
+  const front = $(".face-front", flip), back = $(".face-back", flip);
+  let flipAnim = null, flipIdx = -1, flipCard = null;
+
+  function fillBack(p) {
+    $("[data-f-cat]", back).textContent = p.category || "";
+    $("[data-f-title]", back).textContent = p.title || "Untitled";
+    const d = $("[data-f-desc]", back);
+    d.textContent = "";
+    const paras = String(p.description || "").split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+    if (paras.length) paras.forEach(t => d.append(el("p", { text: t })));
+    else d.append(el("p", { text: p.link ? "Full write-up coming soon. The post on X has the details for now." : "Full write-up coming soon." }));
+    const link = $("[data-f-link]", back);
+    link.hidden = !p.link;
+    if (p.link) { link.href = p.link; link.textContent = /x\.com|twitter\.com/i.test(p.link) ? "View on X" : "View link"; }
+    const old = $(".back-thumb", back); if (old) old.remove();
+    back.append(el("div", { class: "back-thumb", "aria-hidden": "true" }, el("div", { class: "art" }, cover(p))));
+  }
+
+  function openFlip(i, card) {
+    if (!flip.hidden || !projects[i]) return;
+    flipIdx = i; flipCard = card;
+    const frameEl = $(".frame", card);
+    const r = frameEl.getBoundingClientRect();
+    const W = Math.min(660, innerWidth * .92);
+    const H = Math.min(innerHeight * .84, Math.max(W * .82, 440));
+    flipper.style.cssText = `left:${(innerWidth - W) / 2}px;top:${(innerHeight - H) / 2}px;width:${W}px;height:${H}px`;
+    front.textContent = "";
+    const clone = frameEl.cloneNode(true);
+    $$(".wire, .nail", clone).forEach(n => n.remove());
+    front.append(clone);
+    fillBack(projects[i]);
+    back.scrollTop = 0;
+    flip.hidden = false;
+    document.body.classList.add("no-scroll");
+    card.classList.add("flipped");
+    const tiltDeg = parseFloat(getComputedStyle($(".hang", card)).getPropertyValue("--tilt")) || 0;
+    const dx = r.left + r.width / 2 - innerWidth / 2, dy = r.top + r.height / 2 - innerHeight / 2;
+    const sx = r.width / W, sy = r.height / H;
+    flipAnim = flipper.animate([
+      { transform: `translate(${dx}px,${dy}px) scale(${sx},${sy}) rotateZ(${tiltDeg}deg) rotateY(0deg)` },
+      { transform: `translate(${dx * .35}px,${dy * .35 - 50}px) scale(${(sx + 1) / 2 * 1.08}) rotateZ(-5deg) rotateY(75deg)`, offset: .45 },
+      { transform: "translate(0,-6px) scale(1.02) rotateZ(1deg) rotateY(190deg)", offset: .8 },
+      { transform: "translate(0,0) scale(1) rotateZ(0deg) rotateY(180deg)" }
+    ], { duration: reduce ? 1 : 1000, easing: "cubic-bezier(.3,.7,.2,1)", fill: "forwards" });
+    requestAnimationFrame(() => flip.classList.add("open"));
+    flipAnim.finished.then(() => $(".flip-close", back).focus({ preventScroll: true }));
+  }
+
+  function closeFlip(instant) {
+    if (flip.hidden || !flipAnim) return Promise.resolve();
+    flip.classList.remove("open");
+    const done = () => {
+      flip.hidden = true;
+      if (flipCard) { flipCard.classList.remove("flipped"); if (!instant) flipCard.focus({ preventScroll: true }); }
+      if (viewer.hidden) document.body.classList.remove("no-scroll");
+      flipAnim = null;
+    };
+    if (instant || reduce) { flipAnim.cancel(); done(); return Promise.resolve(); }
+    flipAnim.playbackRate = 1.25;
+    flipAnim.reverse();
+    return flipAnim.finished.then(done, done);
+  }
+  $(".flip-close", back).addEventListener("click", () => closeFlip());
+  $(".flip-backdrop", flip).addEventListener("click", () => closeFlip());
+  $("[data-f-full]", back).addEventListener("click", () => {
+    const r = flipper.getBoundingClientRect();
+    const from = [r.top, innerWidth - r.right, innerHeight - r.bottom, r.left].map(v => Math.max(0, v) + "px");
+    const i = flipIdx;
+    closeFlip(true);
+    openViewer(i, null, true, from);
+  });
+
+  /* ---------- full project viewer ---------- */
   const viewer = $("#viewer");
   const vBody = $(".viewer-body", viewer);
-  let current = -1, lastCard = null;
+  let current = -1, lastFocus = null;
 
-  function fill(i) {
+  function fillViewer(i) {
     const p = projects[i];
     const media = $("[data-v-media]", viewer);
     media.textContent = "";
     const yt = ytId(p.video);
-    if (yt) media.append(el("iframe", { src: "https://www.youtube-nocookie.com/embed/" + yt, title: (p.title || "Project") + " video", allow: "autoplay; encrypted-media; picture-in-picture", allowfullscreen: "", loading: "lazy" }));
-    else if (isVideoFile(p.video)) media.append(el("video", { src: p.video, controls: "", playsinline: "", preload: "metadata" }));
-    [p.image, ...(p.gallery || [])].filter(Boolean).forEach((src, n) => media.append(image(src, (p.title || "Project") + " image " + (n + 1), n === 0)));
-    if (!media.children.length) media.append(el("div", { class: "frame" }, placeholder()));
-
+    const add = (node, empty) => { const f = framed(node, ""); if (empty) $(".art", f).classList.add("empty"); $$(".wire, .nail", f).forEach(n => n.remove()); media.append(f); };
+    if (yt) add(el("iframe", { src: "https://www.youtube-nocookie.com/embed/" + yt, title: (p.title || "Project") + " video", allow: "autoplay; encrypted-media; picture-in-picture", allowfullscreen: "", loading: "lazy" }));
+    else if (isVideoFile(p.video)) add(el("video", { src: p.video, controls: "", playsinline: "", preload: "metadata" }));
+    [p.image, ...(p.gallery || [])].filter(Boolean).forEach((src, n) => add(image(src, (p.title || "Project") + " image " + (n + 1), n === 0)));
+    if (!media.children.length) add(placeholder(), true);
     $("[data-v-cat]", viewer).textContent = p.category || "";
     $("[data-v-title]", viewer).textContent = p.title || "Untitled";
     const desc = $("[data-v-desc]", viewer);
     desc.textContent = "";
     const paras = String(p.description || "").split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
     if (paras.length) paras.forEach(t => desc.append(el("p", { text: t })));
-    else if (p.link) desc.append(el("p", { class: "note", text: "Full write-up coming soon. The post on X has the details for now." }));
+    else if (p.link) desc.append(el("p", { text: "Full write-up coming soon. The post on X has the details for now." }));
     const link = $("[data-v-link]", viewer);
     link.hidden = !p.link;
-    if (p.link) {
-      link.href = p.link;
-      link.textContent = /x\.com|twitter\.com/i.test(p.link) ? "View the post on X" : "View project";
-    }
+    if (p.link) { link.href = p.link; link.textContent = /x\.com|twitter\.com/i.test(p.link) ? "View the post on X" : "View project"; }
     $("[data-v-count]", viewer).textContent = (i + 1) + " of " + projects.length;
     const multi = projects.length > 1;
     $(".viewer-prev", viewer).hidden = !multi;
     $(".viewer-next", viewer).hidden = !multi;
   }
-
-  function rectInset(node) {
-    if (!node) return null;
-    const r = (node.querySelector(".card-frame") || node).getBoundingClientRect();
+  function setClip(v) { ["--ct", "--cr", "--cb", "--cl"].forEach((k, n) => viewer.style.setProperty(k, v ? v[n] : "0px")); }
+  function cardInset(i) {
+    const c = $('.card[data-index="' + i + '"] .frame');
+    if (!c) return null;
+    const r = c.getBoundingClientRect();
     if (r.bottom < 0 || r.top > innerHeight || !r.width) return null;
     return [r.top, innerWidth - r.right, innerHeight - r.bottom, r.left].map(v => Math.max(0, v) + "px");
   }
-  function setClip(v) { ["--ct", "--cr", "--cb", "--cl"].forEach((k, n) => viewer.style.setProperty(k, v ? v[n] : "0px")); }
-
-  function openViewer(i, card, push) {
+  function openViewer(i, _card, push, from) {
     if (!projects[i]) return;
     current = i;
-    lastCard = card || $('.card[data-index="' + i + '"]');
-    fill(i);
+    fillViewer(i);
     const hash = "#project-" + (i + 1);
     if (push && location.hash !== hash) history.pushState({ viewer: true }, "", hash);
     if (!viewer.hidden) return;
-    const from = reduce ? null : rectInset(card);
+    lastFocus = $('.card[data-index="' + i + '"]');
     viewer.style.transition = "none";
-    setClip(from);
+    setClip(reduce ? null : (from || cardInset(i)));
     viewer.hidden = false;
     viewer.scrollTop = 0;
     document.body.classList.add("no-scroll");
@@ -175,22 +327,22 @@
     setClip(null);
     $(".viewer-close", viewer).focus({ preventScroll: true });
   }
-
   function closeViewer() {
     if (viewer.hidden) return;
-    const to = reduce ? null : rectInset($('.card[data-index="' + current + '"]'));
+    const to = reduce ? null : cardInset(current);
     const done = () => {
+      if (viewer.hidden) return;
       viewer.hidden = true;
       document.body.classList.remove("no-scroll");
       $$("video", viewer).forEach(v => v.pause());
       $("[data-v-media]", viewer).textContent = "";
-      if (lastCard) lastCard.focus({ preventScroll: true });
+      if (lastFocus) lastFocus.focus({ preventScroll: true });
       current = -1;
     };
     if (to) {
       setClip(to);
       viewer.addEventListener("transitionend", function te(e) { if (e.target === viewer) { viewer.removeEventListener("transitionend", te); done(); } });
-      setTimeout(() => { if (!viewer.hidden && current !== -1) done(); }, 900);
+      setTimeout(done, 900);
     } else done();
   }
   function requestClose() {
@@ -200,32 +352,38 @@
   function step(d) {
     if (projects.length < 2) return;
     const next = (current + d + projects.length) % projects.length;
-    const swap = () => { fill(next); current = next; lastCard = $('.card[data-index="' + next + '"]'); history.replaceState(history.state, "", "#project-" + (next + 1)); viewer.scrollTop = 0; };
+    const swap = () => { fillViewer(next); current = next; lastFocus = $('.card[data-index="' + next + '"]'); history.replaceState(history.state, "", "#project-" + (next + 1)); viewer.scrollTop = 0; };
     if (reduce) return swap();
-    vBody.style.setProperty("--dir", (d > 0 ? -30 : 30) + "px");
+    vBody.style.setProperty("--dir", (d > 0 ? -40 : 40) + "px");
+    vBody.style.setProperty("--rot", (d > 0 ? -1.5 : 1.5) + "deg");
     vBody.classList.add("swap");
     setTimeout(() => {
       swap();
-      vBody.style.setProperty("--dir", (d > 0 ? 30 : -30) + "px");
-      vBody.style.transition = "none";
-      void vBody.offsetWidth;
-      vBody.style.transition = "";
+      vBody.style.setProperty("--dir", (d > 0 ? 40 : -40) + "px");
+      vBody.style.setProperty("--rot", (d > 0 ? 1.5 : -1.5) + "deg");
+      vBody.style.transition = "none"; void vBody.offsetWidth; vBody.style.transition = "";
       vBody.classList.remove("swap");
-    }, 300);
+    }, 320);
   }
   $(".viewer-close", viewer).addEventListener("click", requestClose);
   $(".viewer-prev", viewer).addEventListener("click", () => step(-1));
   $(".viewer-next", viewer).addEventListener("click", () => step(1));
+
+  function trapTab(e, box) {
+    const f = $$("button:not([hidden]), a[href]:not([hidden]), video, iframe", box).filter(n => n.offsetParent !== null);
+    if (!f.length) return;
+    if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+  }
   document.addEventListener("keydown", e => {
-    if (viewer.hidden) return;
-    if (e.key === "Escape") requestClose();
-    else if (e.key === "ArrowRight") step(1);
-    else if (e.key === "ArrowLeft") step(-1);
-    else if (e.key === "Tab") {
-      const f = $$("button:not([hidden]), a[href]:not([hidden]), video, iframe", viewer).filter(n => n.offsetParent !== null);
-      if (!f.length) return;
-      if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
-      else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+    if (!viewer.hidden) {
+      if (e.key === "Escape") requestClose();
+      else if (e.key === "ArrowRight") step(1);
+      else if (e.key === "ArrowLeft") step(-1);
+      else if (e.key === "Tab") trapTab(e, viewer);
+    } else if (!flip.hidden) {
+      if (e.key === "Escape") closeFlip();
+      else if (e.key === "Tab") trapTab(e, back);
     }
   });
   function route() {
@@ -237,9 +395,9 @@
 
   /* ---------- about ---------- */
   const bio = $("[data-bio]");
-  (P.bio || []).forEach(t => bio.append(el("p", { text: t })));
+  (P.bio || []).forEach(t => bio.append(el("p", { class: "pop", text: t })));
   const proc = $("[data-process]");
-  (P.process || []).forEach(s => proc.append(el("li", {}, el("strong", { text: s.title }), el("p", { text: s.text }))));
+  (P.process || []).forEach(s => proc.append(el("li", { class: "pop" }, el("strong", { text: s.title }), el("p", { text: s.text }))));
   if (!(P.process || []).length) proc.previousElementSibling.hidden = true;
 
   const facts = $("[data-facts]");
@@ -251,18 +409,13 @@
   (P.facts || []).forEach(f => row(f.label, f.value));
 
   const tl = $("[data-timeline]");
-  (SITE.timeline || []).forEach(t => tl.append(el("li", {}, el("span", { class: "when", text: t.when }), el("span", { class: "what", text: t.text }))));
+  (SITE.timeline || []).forEach((t, i) => tl.append(el("li", { style: `--i:${i}` }, el("span", { class: "when", text: t.when }), el("span", { class: "what", text: t.text }))));
   if (!(SITE.timeline || []).length) tl.previousElementSibling.hidden = true;
 
-  // live clock in the artist's timezone
   const clock = $("[data-clock]");
   function timeNow() {
-    try {
-      return new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: P.timeZone || "Africa/Cairo" }).format(new Date());
-    } catch (e) {
-      const d = new Date(Date.now() + (P.utcOffset || 2) * 3600e3);
-      return d.getUTCHours() % 12 + ":" + String(d.getUTCMinutes()).padStart(2, "0");
-    }
+    try { return new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: P.timeZone || "Africa/Cairo" }).format(new Date()); }
+    catch (e) { const d = new Date(Date.now() + (P.utcOffset || 2) * 3600e3); return (d.getUTCHours() % 12 || 12) + ":" + String(d.getUTCMinutes()).padStart(2, "0"); }
   }
   function tick() {
     const t = timeNow();
@@ -275,11 +428,11 @@
   const sw = $("[data-skills]");
   (SITE.skills || []).forEach((g, n) => {
     const ul = el("ul");
-    (g.items || []).forEach(it => {
+    (g.items || []).forEach((it, i) => {
       const [nm, note] = String(it).split("|").map(s => s.trim());
-      ul.append(el("li", {}, el("span", { text: nm }), note ? el("span", { class: "skill-note", text: note }) : null));
+      ul.append(el("li", { style: `--i:${i}` }, nm, note ? el("span", { class: "skill-note", text: note }) : null));
     });
-    sw.append(el("div", { class: "skill-group reveal" + (n === 0 ? " lead" : "") }, el("h3", { text: g.group }), ul));
+    sw.append(el("div", { class: "skill-group" + (n === 0 ? " lead" : "") }, el("h3", { text: g.group }), ul));
   });
 
   /* ---------- contact ---------- */
@@ -287,13 +440,14 @@
   if (C.discord) {
     setText("[data-discord]", C.discord);
     const status = $("[data-copy-status]");
-    discordBtn.addEventListener("click", async () => {
+    discordBtn.addEventListener("click", async e => {
       let ok = false;
-      try { await navigator.clipboard.writeText(C.discord); ok = true; } catch (e) {
+      try { await navigator.clipboard.writeText(C.discord); ok = true; } catch (err) {
         const t = el("textarea", { readonly: "" }); t.value = C.discord; document.body.append(t); t.select();
         try { ok = document.execCommand("copy"); } catch (e2) { ok = false; } t.remove();
       }
-      status.textContent = ok ? "Copied" : "Select and copy: " + C.discord;
+      status.textContent = ok ? "Copied!" : "Select and copy: " + C.discord;
+      if (ok) sparks(e.clientX || discordBtn.getBoundingClientRect().left + 40, e.clientY || discordBtn.getBoundingClientRect().top + 20);
       setTimeout(() => { status.textContent = "Copy username"; }, 2200);
     });
   } else discordBtn.hidden = true;
@@ -302,9 +456,46 @@
   else xA.hidden = true;
   if (C.email) { const m = $("[data-email]"); m.hidden = false; m.href = "mailto:" + C.email; setText("[data-email-value]", C.email); }
 
-  /* ---------- nav ---------- */
-  const nav = $("#nav");
-  const onScroll = () => nav.classList.toggle("scrolled", scrollY > 30);
+  function sparks(x, y) {
+    if (reduce) return;
+    for (let k = 0; k < 9; k++) {
+      const s = el("span", { class: "spark", text: ["✦", "✧", "★"][k % 3], style: `left:${x}px;top:${y}px` });
+      document.body.append(s);
+      const a = Math.random() * Math.PI * 2, d = 50 + Math.random() * 60;
+      s.animate([{ transform: "translate(-50%,-50%) scale(.4)", opacity: 1 }, { transform: `translate(calc(-50% + ${Math.cos(a) * d}px), calc(-50% + ${Math.sin(a) * d}px)) scale(1.1) rotate(${a * 60}deg)`, opacity: 0 }],
+        { duration: 700 + Math.random() * 300, easing: "cubic-bezier(.2,.8,.3,1)" }).finished.then(() => s.remove());
+    }
+  }
+
+  /* ---------- split headings into letters ---------- */
+  $$("[data-split]").forEach(h => {
+    const text = h.textContent.trim();
+    h.textContent = "";
+    h.setAttribute("aria-label", text);
+    let i = 0;
+    text.split(" ").forEach((w, wi, arr) => {
+      const word = el("span", { class: "word", "aria-hidden": "true" });
+      [...w].forEach(ch => word.append(el("span", { class: "split-ch", style: `--i:${i++}`, text: ch })));
+      h.append(word);
+      if (wi < arr.length - 1) h.append(" ");
+    });
+    if (h.classList.contains("section-title")) {
+      h.insertAdjacentHTML("beforeend", '<svg class="ink-underline" viewBox="0 0 300 16" preserveAspectRatio="none" aria-hidden="true"><path d="M3 10C60 4 140 3 297 8"/></svg>');
+    }
+  });
+
+  /* ---------- nav, progress, glow ---------- */
+  const nav = $("#nav"), prog = $(".progress"), glow = $(".glow");
+  let ticking = false;
+  const onScroll = () => {
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(() => {
+      nav.classList.toggle("scrolled", scrollY > 30);
+      const max = document.documentElement.scrollHeight - innerHeight;
+      prog.style.setProperty("--p", max > 0 ? Math.min(1, scrollY / max) : 0);
+      ticking = false;
+    });
+  };
   addEventListener("scroll", onScroll, { passive: true }); onScroll();
   const toggle = $(".nav-toggle"), links = $("#nav-links");
   const setMenu = open => { toggle.setAttribute("aria-expanded", open); links.classList.toggle("open", open); document.body.classList.toggle("no-scroll", open); };
@@ -318,214 +509,47 @@
   $$("main section[id]").forEach(s => secObs.observe(s));
 
   /* ---------- scroll reveals ---------- */
-  // watch each element's parent: a fully clipped element can't be observed reliably
-  const revealMap = new Map();
   const revealObs = new IntersectionObserver(es => es.forEach(e => {
     if (!e.isIntersecting) return;
-    (revealMap.get(e.target) || []).forEach(n => n.classList.add("in"));
+    e.target.classList.add("in");
     revealObs.unobserve(e.target);
   }), { threshold: .12, rootMargin: "0px 0px -6% 0px" });
-  $$(".reveal, .section-title, .timeline").forEach((n, i) => {
-    if (n.classList.contains("card-frame")) n.style.transitionDelay = (i % 3) * 0.08 + "s";
-    const t = n.classList.contains("reveal") ? n.parentElement : n;
-    if (!revealMap.has(t)) revealMap.set(t, []);
-    revealMap.get(t).push(n);
-    revealObs.observe(t);
+  $$("[data-split], .card, .pop, .timeline, .skill-group").forEach((n, i) => {
+    if (n.classList.contains("pop")) n.style.transitionDelay = (i % 3) * .1 + "s";
+    revealObs.observe(n);
   });
 
-  /* ---------- cursor ---------- */
-  const cur = $(".cursor");
-  if (matchMedia("(pointer: fine)").matches && !reduce) {
-    let x = -100, y = -100, cx = x, cy = y;
+  /* ---------- cursor + lamp light ---------- */
+  if (finePointer && !reduce) {
+    const cur = $(".cursor");
+    let x = innerWidth * .75, y = innerHeight * .25, cx = x, cy = y, gx = x, gy = y;
     addEventListener("pointermove", e => { x = e.clientX; y = e.clientY; cur.classList.add("on"); }, { passive: true });
     document.addEventListener("pointerleave", () => cur.classList.remove("on"));
-    document.addEventListener("pointerover", e => cur.classList.toggle("big", !!e.target.closest(".card")));
-    (function loop() { cx += (x - cx) * .2; cy += (y - cy) * .2; cur.style.transform = `translate(${cx}px,${cy}px)`; requestAnimationFrame(loop); })();
+    document.addEventListener("pointerover", e => {
+      const t = e.target;
+      cur.classList.toggle("big", !!t.closest(".card"));
+      cur.classList.toggle("link", !t.closest(".card") && !!t.closest("a, button, .tool"));
+    });
+    (function loop() {
+      cx += (x - cx) * .22; cy += (y - cy) * .22;
+      gx += (x - gx) * .06; gy += (y - gy) * .06;
+      cur.style.transform = `translate(${cx}px,${cy}px)`;
+      glow.style.setProperty("--mx", gx + "px");
+      glow.style.setProperty("--my", gy + "px");
+      requestAnimationFrame(loop);
+    })();
   }
 
   /* ---------- loader ---------- */
   const start = performance.now();
   function finish() {
-    const wait = reduce ? 0 : Math.max(0, 1000 - (performance.now() - start));
+    const wait = reduce ? 0 : Math.max(0, 1300 - (performance.now() - start));
     setTimeout(() => {
       document.body.classList.add("loaded");
-      setTimeout(() => { const l = $(".loader"); if (l) l.remove(); }, 900);
+      setTimeout(() => { const l = $(".loader"); if (l) l.remove(); }, 1100);
       route();
     }, wait);
   }
   const fontsReady = document.fonts ? document.fonts.ready : Promise.resolve();
-  Promise.race([fontsReady, new Promise(r => setTimeout(r, 1800))]).then(finish);
-
-  /* ---------- hero house: a tiny live 3D model, hatched like ink ---------- */
-  const canvas = $("#house");
-  if (canvas && canvas.getContext) houseRenderer(canvas);
-
-  function houseRenderer(cv) {
-    const ctx = cv.getContext("2d");
-    const INK = "#2A1E18";
-    let W = 0, H = 0, dpr = 1;
-    const resize = () => {
-      dpr = Math.min(devicePixelRatio || 1, 2);
-      const r = cv.getBoundingClientRect();
-      W = cv.width = Math.max(1, Math.round(r.width * dpr));
-      H = cv.height = Math.max(1, Math.round(r.height * dpr));
-      if (stopped) draw();
-    };
-
-    const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-    const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-    const norm = a => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
-    const mid = pts => pts.reduce((s, p) => [s[0] + p[0] / pts.length, s[1] + p[1] / pts.length, s[2] + p[2] / pts.length], [0, 0, 0]);
-    const newell = pts => {
-      let n = [0, 0, 0];
-      pts.forEach((p, i) => { const q = pts[(i + 1) % pts.length]; n[0] += (p[1] - q[1]) * (p[2] + q[2]); n[1] += (p[2] - q[2]) * (p[0] + q[0]); n[2] += (p[0] - q[0]) * (p[1] + q[1]); });
-      return norm(n);
-    };
-    const layers = [];
-    function part(faces, fill, tone, kind) {
-      const c = mid(faces.flat());
-      layers.push(faces.map((pts, id) => {
-        let n = newell(pts);
-        if (dot(n, sub(mid(pts), c)) < 0) n = n.map(v => -v);
-        return { pts, n, fill, tone, kind, id: layers.length * 10 + id };
-      }));
-    }
-    function decal(pts, n, fill, tone, kind) { layers.push([{ pts, n, fill, tone, kind, id: layers.length * 10 }]); }
-    function box(x0, x1, y0, y1, z0, z1) {
-      const v = [[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]];
-      return [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 5, 4], [3, 2, 6, 7], [0, 3, 7, 4], [1, 2, 6, 5]].map(f => f.map(i => v[i]));
-    }
-
-    // body
-    part(box(-1, 1, 0, 1.2, -.8, .8), "#EFE9DD", 0);
-    // door + windows (drawn on the walls)
-    const e = .806;
-    decal([[-.22, 0, e], [.22, 0, e], [.22, .74, e], [-.22, .74, e]], [0, 0, 1], "#6E6A55", .28, "door");
-    decal([[.42, .45, e], [.78, .45, e], [.78, .82, e], [.42, .82, e]], [0, 0, 1], "#3B2C24", 0, "window");
-    decal([[-.78, .45, e], [-.42, .45, e], [-.42, .82, e], [-.78, .82, e]], [0, 0, 1], "#3B2C24", 0, "window");
-    decal([[1.006, .45, -.3], [1.006, .45, .3], [1.006, .85, .3], [1.006, .85, -.3]], [1, 0, 0], "#3B2C24", 0, "window");
-    decal([[-1.006, .45, -.3], [-1.006, .45, .3], [-1.006, .85, .3], [-1.006, .85, -.3]], [-1, 0, 0], "#3B2C24", 0, "window");
-    decal([[-.5, .45, -e], [0, .45, -e], [0, .82, -e], [-.5, .82, -e]], [0, 0, -1], "#3B2C24", 0, "window");
-    // roof
-    const A = [-1.15, 1.15, .95], B = [1.15, 1.15, .95], Cc = [1.15, 1.9, 0], D = [-1.15, 1.9, 0], E = [-1.15, 1.15, -.95], F = [1.15, 1.15, -.95];
-    part([[A, B, Cc, D], [F, E, D, Cc], [E, A, D], [B, F, Cc], [A, E, F, B]], "#B98F5F", .12);
-    // chimney sitting on the ridge
-    const x0 = .4, x1 = .72, zb = .18, yb = 1.9 - zb / .95 * .75, yt = 2.28;
-    part([
-      [[x0, yb, zb], [x1, yb, zb], [x1, yt, zb], [x0, yt, zb]],
-      [[x0, yb, -zb], [x1, yb, -zb], [x1, yt, -zb], [x0, yt, -zb]],
-      [[x0, yt, -zb], [x1, yt, -zb], [x1, yt, zb], [x0, yt, zb]],
-      [[x0, yb, zb], [x0, yt, zb], [x0, yt, -zb], [x0, yb, -zb], [x0, 1.9, 0]],
-      [[x1, yb, zb], [x1, yt, zb], [x1, yt, -zb], [x1, yb, -zb], [x1, 1.9, 0]]
-    ], "#8A503B", .1);
-    const ground = [];
-    for (let k = 0; k < 28; k++) { const a = k / 28 * Math.PI * 2; ground.push([Math.cos(a) * 1.75, 0, Math.sin(a) * 1.45]); }
-
-    let yaw = -.6, pitch = .32, vel = reduce ? 0 : .0045, drag = null, stopped = false, visible = true;
-    const L = norm([-.5, .62, .62]);
-    const rand = s => { const x = Math.sin(s * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
-
-    function xf(p) {
-      const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
-      const x = p[0], y = p[1] - 1.05, z = p[2];
-      const x1 = x * cy - z * sy, z1 = x * sy + z * cy;
-      return [x1, y * cp - z1 * sp, y * sp + z1 * cp];
-    }
-    function rot(n) {
-      const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
-      const x1 = n[0] * cy - n[2] * sy, z1 = n[0] * sy + n[2] * cy;
-      return [x1, n[1] * cp - z1 * sp, n[1] * sp + z1 * cp];
-    }
-    const Dcam = 9;
-    function proj(c) { const s = Dcam / (Dcam - c[2]) * W * .225; return [W / 2 + c[0] * s, H * .53 - c[1] * s]; }
-
-    function path(pts) { ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); }
-    function hatch(sp, level, seed, alpha) {
-      const xs = sp.map(p => p[0]), ys = sp.map(p => p[1]);
-      const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
-      const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2, R = Math.hypot(maxX - minX, maxY - minY) / 2 + 4;
-      const angles = [-Math.PI / 4, Math.PI / 4, Math.PI / 14];
-      ctx.save(); path(sp); ctx.clip();
-      ctx.strokeStyle = INK; ctx.globalAlpha = alpha; ctx.lineCap = "round";
-      for (let k = 0; k < level; k++) {
-        const a = angles[k], ux = Math.cos(a), uy = Math.sin(a), nx = -uy, ny = ux;
-        const gap = (k === 2 ? 4.2 : 5.4) * dpr;
-        ctx.lineWidth = (k === 0 ? 1.15 : 1) * dpr;
-        ctx.beginPath();
-        // anchor lines to the screen grid so they don't crawl
-        const off = (cx * nx + cy * ny);
-        const t0 = Math.floor((off - R) / gap) * gap, t1 = off + R;
-        for (let t = t0, j = 0; t <= t1; t += gap, j++) {
-          const ln = Math.round(t / gap);
-          const j1 = (rand(ln * 7 + k * 131) - .5) * 1.6 * dpr, j2 = (rand(ln * 13 + k * 71 + 5) - .5) * 1.6 * dpr;
-          const bx = nx * t, by = ny * t;
-          const along = ux * cx + uy * cy;
-          ctx.moveTo(bx + ux * (along - R) + nx * j1, by + uy * (along - R) + ny * j1);
-          ctx.lineTo(bx + ux * (along + R) + nx * j2, by + uy * (along + R) + ny * j2);
-        }
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-      ctx.lineJoin = "round";
-      // ground shadow
-      const gs = ground.map(p => proj(xf(p)));
-      hatch(gs, 1, 1, .45);
-      ctx.save(); path(gs); ctx.setLineDash([2 * dpr, 7 * dpr]); ctx.lineWidth = 1.6 * dpr; ctx.strokeStyle = "rgba(42,30,24,.5)"; ctx.stroke(); ctx.restore();
-
-      layers.forEach(faces => faces.forEach(f => {
-        const cam = f.pts.map(xf);
-        const n = rot(f.n), c = mid(cam);
-        if (dot(n, [-c[0], -c[1], Dcam - c[2]]) <= 0) return;
-        const sp = cam.map(proj);
-        const b = Math.max(0, dot(n, L));
-        const dark = 1 - b + f.tone;
-        path(sp); ctx.fillStyle = f.fill; ctx.fill();
-        if (f.kind === "window") {
-          // two light mullions
-          const m = (a, b2) => [(a[0] + b2[0]) / 2, (a[1] + b2[1]) / 2];
-          ctx.save(); path(sp); ctx.clip();
-          ctx.strokeStyle = "#E3D7C2"; ctx.lineWidth = 2 * dpr; ctx.beginPath();
-          const p1 = m(sp[0], sp[1]), p2 = m(sp[3], sp[2]), p3 = m(sp[0], sp[3]), p4 = m(sp[1], sp[2]);
-          ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.moveTo(p3[0], p3[1]); ctx.lineTo(p4[0], p4[1]); ctx.stroke();
-          ctx.restore();
-        } else {
-          const level = dark < .42 ? 0 : dark < .68 ? 1 : dark < .9 ? 2 : 3;
-          if (level) hatch(sp, level, f.id, .82);
-        }
-        path(sp); ctx.strokeStyle = INK; ctx.lineWidth = (f.kind ? 2 : 2.7) * dpr; ctx.stroke();
-      }));
-    }
-
-    let last = performance.now(), raf = 0;
-    function frame(t) {
-      const dt = Math.min(50, t - last); last = t;
-      if (!drag) { yaw += vel * dt / 16.7; if (!reduce) vel += (.0045 - vel) * .02; }
-      draw();
-      raf = (visible && !document.hidden) ? requestAnimationFrame(frame) : 0;
-      stopped = !raf;
-    }
-    const startLoop = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); stopped = false; } };
-
-    cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY, t: performance.now() }; cv.setPointerCapture(e.pointerId); if (!reduce) startLoop(); });
-    cv.addEventListener("pointermove", e => {
-      if (!drag) return;
-      const dx = e.clientX - drag.x, dy = e.clientY - drag.y, now = performance.now();
-      yaw += dx * .012; pitch = Math.min(.62, Math.max(.08, pitch + dy * .006));
-      vel = dx * .012 / Math.max(1, (now - drag.t) / 16.7);
-      drag = { x: e.clientX, y: e.clientY, t: now };
-      if (reduce) draw();
-    });
-    const end = () => { drag = null; if (reduce) vel = 0; };
-    cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
-
-    new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible && !reduce) startLoop(); }).observe(cv);
-    document.addEventListener("visibilitychange", () => { if (!document.hidden && visible && !reduce) startLoop(); });
-    new ResizeObserver(resize).observe(cv);
-    resize();
-    if (reduce) { stopped = true; draw(); } else startLoop();
-  }
+  Promise.race([fontsReady, new Promise(r => setTimeout(r, 2000))]).then(finish);
 })();
