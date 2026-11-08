@@ -64,7 +64,7 @@
       <li>Change anything below. Your edits are kept in this browser while you work.</li>
       <li>Click <b>Preview site</b> to check it.</li>
       <li>Click <b>Download content.js</b>, then upload it to your GitHub repo (replace the old one).</li>
-      <li>Pictures and videos: upload them into the <code>images</code> folder on GitHub, then type the path here, like <code>images/house.jpg</code> or <code>images/turntable.mp4</code>. YouTube links work too.</li>
+      <li>Pictures and videos: upload them to your repo next to <code>index.html</code>, then type the file name here, like <code>house.jpg</code> or <code>turntable.mp4</code>. YouTube links work too.</li>
     </ol>
   </div>
   <div id="app"></div>
@@ -191,7 +191,7 @@
     // software frames at the top
     app.append(h("section", {},
       h("h2", { text: "Software (top of the page)" }),
-      h("p", { class: "help", text: "Up to 3. Upload the logo into the images folder and type its path, like images/blender.png. If the file is missing, a hand-drawn sketch shows instead." }),
+      h("p", { class: "help", text: "Up to 3. Upload the logo to your repo and type its file name, like blender.png. If the file is missing, a hand-drawn sketch shows instead." }),
       rows(S.tools, ["name", "image"], ["Software name", "Image path (optional)"], "Add software", { name: "", image: "" })));
 
     // skills
@@ -243,12 +243,12 @@
             field("Category", p, "category", { list: "cats", hint: "More than one? Separate with commas: Environment art, 3D art" })),
           field("Description", p, "description", { area: true, hint: "Leave an empty line between paragraphs." }),
           h("div", { class: "two" },
-            h("div", {}, field("Main picture or video", p, "image", { ph: "images/render.jpg or images/turntable.mp4", hint: "A picture, an .mp4/.webm video, or a YouTube link. Videos play silently on the wall.", after: th.upd }), th.img),
+            h("div", {}, field("Main picture or video", p, "image", { ph: "render.jpg or turntable.mp4", hint: "A picture, an .mp4/.webm video, or a YouTube link. Videos play silently on the wall.", after: th.upd }), th.img),
             h("div", {},
               field("More pictures or videos, one per line", p, "gallery", Object.assign({ area: true, hint: "Shown in the full project view." }, lines)),
-              field("Extra video (optional)", p, "video", { ph: "YouTube link or images/clip.mp4" }))),
+              field("Extra video (optional)", p, "video", { ph: "YouTube link or clip.mp4" }))),
           h("label", { text: "Reference images (optional, only shown on this project)" }),
-          rows(p.references, ["image", "credit"], ["Image path, like images/ref.jpg", "Credit, like Character, Game"], "Add reference", { image: "", credit: "" }),
+          rows(p.references, ["image", "credit"], ["File name, like ref.jpg", "Credit, like Character, Game"], "Add reference", { image: "", credit: "" }),
           h("label", { class: "check", for: "feat" + i }, feat, "Featured (big frame)")));
       });
     };

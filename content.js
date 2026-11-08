@@ -30,12 +30,12 @@ window.SITE = {
   },
 
   /* Software shown as framed pictures at the top.
-     Upload the logo files into the images folder with these names.
+     Upload the logo files next to index.html with these names.
      If a file is missing, a hand-drawn sketch shows instead. */
   tools: [
-    { name: "Blender", image: "images/blender.png" },
-    { name: "Substance Painter", image: "images/substance-painter.png" },
-    { name: "Roblox Studio", image: "images/roblox-studio.png" }
+    { name: "Blender", image: "blender.png" },
+    { name: "Substance Painter", image: "substance-painter.png" },
+    { name: "Roblox Studio", image: "roblox-studio.png" }
   ],
 
   /* Titles and button text around the site */
@@ -74,19 +74,19 @@ window.SITE = {
   },
 
   /* PROJECTS (shown in this order)
-     image:      main picture OR video: "images/render.jpg", "images/turntable.mp4" or a YouTube link
+     image:      main picture OR video: "render.jpg", "turntable.mp4" or a YouTube link
      gallery:    more pictures/videos for the full view
      category:   one or more, separated by commas: "Environment art, 3D art"
      references: optional, shown under "Reference" in the full view:
-                 [{ image: "images/ref.jpg", credit: "Character, Game" }]
+                 [{ image: "ref.jpg", credit: "Character, Game" }]
      featured:   true makes it a big frame
      Delete a whole { ... } line to remove a slot. */
   projects: [
-    { title: "Project 05", category: "3D art", description: "", image: "images/flame-uniform-1.jpg", gallery: ["images/flame-uniform-2.jpg"], video: "", featured: false, references: [{ image: "images/flame-uniform-ref-1.jpg", credit: "Rengoku, Demon Slayer" }, { image: "images/flame-uniform-ref-2.jpg", credit: "Post-apocalypse AU concept, fan art" }] },
-    { title: "Project 02", category: "Environment art", description: "", image: "images/night-arena-1.jpg", gallery: [], video: "", featured: false, references: [{ image: "images/night-arena-ref-1.jpg", credit: "" }] },
-    { title: "Project 04", category: "Environment art, 3D art", description: "", image: "images/train-interior-1.jpg", gallery: ["images/train-interior-2.jpg", "images/train-interior-3.jpg"], video: "", featured: false },
-    { title: "Project 01", category: "3D art", description: "", image: "images/gold-armor-1.jpg", gallery: ["images/gold-armor-2.jpg", "images/gold-armor-3.jpg"], video: "", featured: false, references: [{ image: "images/gold-armor-ref-1.jpg", credit: "Asura, Asura's Wrath" }] },
-    { title: "Project 03", category: "3D art", description: "", image: "images/purple-outfit-1.jpg", gallery: ["images/purple-outfit-2.jpg", "images/purple-outfit-3.jpg"], video: "", featured: false, references: [{ image: "images/purple-outfit-ref-1.jpg", credit: "Diavolo, JoJo's Bizarre Adventure" }] },
+    { title: "Project 05", category: "3D art", description: "", image: "flame-uniform-1.jpg", gallery: ["flame-uniform-2.jpg"], video: "", featured: false, references: [{ image: "flame-uniform-ref-1.jpg", credit: "Rengoku, Demon Slayer" }, { image: "flame-uniform-ref-2.jpg", credit: "Post-apocalypse AU concept, fan art" }] },
+    { title: "Project 02", category: "Environment art", description: "", image: "night-arena-1.jpg", gallery: [], video: "", featured: false, references: [{ image: "night-arena-ref-1.jpg", credit: "" }] },
+    { title: "Project 04", category: "Environment art, 3D art", description: "", image: "train-interior-1.jpg", gallery: ["train-interior-2.jpg", "train-interior-3.jpg"], video: "", featured: false },
+    { title: "Project 01", category: "3D art", description: "", image: "gold-armor-1.jpg", gallery: ["gold-armor-2.jpg", "gold-armor-3.jpg"], video: "", featured: false, references: [{ image: "gold-armor-ref-1.jpg", credit: "Asura, Asura's Wrath" }] },
+    { title: "Project 03", category: "3D art", description: "", image: "purple-outfit-1.jpg", gallery: ["purple-outfit-2.jpg", "purple-outfit-3.jpg"], video: "", featured: false, references: [{ image: "purple-outfit-ref-1.jpg", credit: "Diavolo, JoJo's Bizarre Adventure" }] },
     { title: "Project 06", category: "3D art", description: "", image: "", gallery: [], video: "", featured: false },
     { title: "Project 07", category: "3D art", description: "", image: "", gallery: [], video: "", featured: false },
     { title: "Project 08", category: "3D art", description: "", image: "", gallery: [], video: "", featured: false },
