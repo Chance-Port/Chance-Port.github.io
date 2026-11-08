@@ -36,6 +36,10 @@
     <path d="M16 114h48l-4 10H20z" class="candle-dish"/>
   </svg>
   <p class="loader-text">lighting up</p>
+  <div class="gate" hidden>
+    <button type="button" class="btn btn-red gate-enter" data-enter="quiet">Enter the cave</button>
+    <button type="button" class="gate-sound" data-enter="sound">&#x1F50A; enter with sound</button>
+  </div>
 </div>
 
 <div class="scene" aria-hidden="true"><canvas class="scene-canvas"></canvas></div>
@@ -73,6 +77,11 @@
     <p class="scene-hint">move your mouse, click to release fireflies</p>
   </section>
 
+  <section class="ticker" aria-label="Skills and tools">
+    <div class="tick-row" data-tick="0"><div class="tick-track"></div></div>
+    <div class="tick-row rev" data-tick="1"><div class="tick-track"></div></div>
+  </section>
+
   <section class="section work" id="work">
     <div class="section-head">
       <h2 class="section-title" data-split data-label="work">Work</h2>
@@ -89,6 +98,7 @@
     <div class="section-head">
       <h2 class="section-title" data-split data-label="about">About</h2>
     </div>
+    <div class="stats-band" data-statsband></div>
     <div class="about-grid">
       <div class="about-bio">
         <div class="bio" data-bio></div>
@@ -148,6 +158,7 @@
       <span class="visits" data-visits hidden></span>
       <a href="#top">Back to top</a>
     </footer>
+    <div class="wordmark" aria-hidden="true" data-wordmark><span class="wm-outline">CHANCE</span><span class="wm-fill">CHANCE</span></div>
   </section>
 </main>
 

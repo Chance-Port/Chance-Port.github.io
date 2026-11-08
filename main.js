@@ -745,7 +745,26 @@
 
   /* ---------- about ---------- */
   const bio = $("[data-bio]");
-  (P.bio || []).forEach(t => bio.append(el("p", { class: "pop", text: t })));
+  const pics = (P.inlinePics || []).filter(x => x && x.word && x.image);
+  (P.bio || []).forEach((t, n) => {
+    const para = el("p", { class: "pop" });
+    if (n === 0 && pics.length) {
+      const used = new Set();
+      const words = pics.map(x => x.word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+      const rx = new RegExp("\\b(" + words.join("|") + ")\\b", "gi");
+      let last = 0, m;
+      while ((m = rx.exec(t))) {
+        const pic = pics.find(x => x.word.toLowerCase() === m[1].toLowerCase());
+        if (!pic || used.has(pic.word)) continue;
+        used.add(pic.word);
+        para.append(t.slice(last, m.index + m[0].length), " ");
+        para.append(el("span", { class: "ipic", "aria-hidden": "true" }, el("img", { src: thumbSrc(pic.image), alt: "", loading: "lazy", decoding: "async", onerror: "this.onerror=null;this.src='" + pic.image.replace(/'/g, "") + "'" })));
+        last = m.index + m[0].length;
+      }
+      para.append(t.slice(last));
+    } else para.textContent = t;
+    bio.append(para);
+  });
   const proc = $("[data-process]");
   if ((P.services || []).length) {
     // "What I do" list
@@ -799,6 +818,75 @@
     });
     sw.append(el("div", { class: "skill-group" + (n === 0 ? " lead" : "") }, el("h3", { text: g.group }), ul));
   });
+
+  /* ---------- sliding tag rows ---------- */
+  (function ticker() {
+    const all = [...new Set([...(SITE.tools || []).map(t => t.name), ...(SITE.skills || []).flatMap(g => (g.items || []).filter(it => !String(it).includes("|")).map(it => String(it).trim()))])].filter(Boolean);
+    if (all.length < 4) { const tk = $(".ticker"); if (tk) tk.hidden = true; return; }
+    const half = Math.ceil(all.length / 2);
+    [all.slice(0, half), all.slice(half)].forEach((list, r) => {
+      const track = $(`[data-tick="${r}"] .tick-track`);
+      if (!track) return;
+      const fill = () => list.forEach((w, k) => track.append(el("span", { class: "tick", style: `--r:${((k % 3) - 1) * 1.2}deg` }, w)));
+      fill(); fill();   // twice, so the loop is seamless
+      track.style.setProperty("--dur", Math.max(24, list.length * 4.5) + "s");
+      $$(".tick", track).slice(list.length).forEach(n => n.setAttribute("aria-hidden", "true"));
+    });
+  })();
+
+  /* ---------- numbers that count up ---------- */
+  (function statsBand() {
+    const band = $("[data-statsband]");
+    if (!band) return;
+    const items = [{ n: projects.length, cap: "projects", dec: 0 }];
+    (P.facts || []).forEach(f => {
+      const m = /([\d.]+)\s*(.*)/.exec(String(f.value || ""));
+      if (m) items.push({ n: parseFloat(m[1]), cap: ((m[2] || "") + " " + (f.label || "")).trim(), dec: m[1].includes(".") ? 1 : 0 });
+    });
+    const live = [{ key: "l", cap: "likes" }, { key: "v", cap: "views" }].map(x => Object.assign({ n: null, dec: 0, live: true }, x));
+    const nodes = items.concat(live).map(it => {
+      const num = el("b", { class: "stat-num", text: it.live ? "\u2026" : "0" });
+      const box = el("div", { class: "stat" + (it.live ? " live" : "") }, num, el("span", { class: "stat-cap", text: it.cap }));
+      band.append(box);
+      return Object.assign(it, { num, box });
+    });
+    const countUp = it => {
+      const end = it.n, t0 = performance.now(), dur = reduce ? 1 : 1500;
+      (function f(t) {
+        const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        it.num.textContent = it.live && end >= 1000 ? fmtN(Math.round(end * e)) : (end * e).toFixed(it.dec);
+        if (k < 1) requestAnimationFrame(f);
+      })(t0);
+    };
+    let done = false;
+    const go = () => {
+      if (done) return; done = true;
+      band.classList.add("in");
+      nodes.filter(x => !x.live).forEach(countUp);
+      Promise.all(projects.map(p => loadCounts(p).then(() => paintCard(pid(p))))).then(() => {
+        nodes.filter(x => x.live).forEach(it => {
+          const vals = projects.map(p => (countCache[pid(p)] || {})[it.key]).filter(v => typeof v === "number");
+          if (!vals.length) { it.box.hidden = true; return; }
+          it.n = vals.reduce((a, b) => a + b, 0); countUp(it);
+        });
+      });
+    };
+    if ("IntersectionObserver" in window) {
+      const o = new IntersectionObserver(es => { if (es[0].isIntersecting) { o.disconnect(); go(); } }, { threshold: .4 });
+      o.observe(band);
+    } else go();
+  })();
+
+  /* ---------- giant name at the very bottom ---------- */
+  (function wordmark() {
+    const wm = $("[data-wordmark]");
+    if (!wm) return;
+    $$("span", wm).forEach(sp => { sp.textContent = (P.name || "Chance").toUpperCase(); });
+    if ("IntersectionObserver" in window) {
+      const o = new IntersectionObserver(es => { if (es[0].isIntersecting) { o.disconnect(); wm.classList.add("in"); } }, { threshold: .3 });
+      o.observe(wm);
+    } else wm.classList.add("in");
+  })();
 
   /* ---------- contact ---------- */
   const discordBtn = $("[data-copy-discord]");
@@ -959,6 +1047,7 @@
       master.gain.setTargetAtTime(v ? .9 : 0, ac.currentTime, .6);
     }
     btn.addEventListener("click", () => set(!on));
+    document.addEventListener("chance-sound-on", () => set(true));
     // if it was on last time, turn it back on at the first tap (browsers need a tap first)
     let pref = null; try { pref = localStorage.getItem("chance-sound"); } catch (e) {}
     if (pref === "1") addEventListener("pointerdown", function first(e) { removeEventListener("pointerdown", first); if (!e.target.closest(".sound-btn")) set(true); });
@@ -969,12 +1058,32 @@
 
   /* ---------- loader ---------- */
   const start = performance.now();
+  function reveal() {
+    document.body.classList.add("loaded");
+    setTimeout(() => { const l = $(".loader"); if (l) l.remove(); }, 1100);
+    route();
+  }
   function finish() {
     const wait = reduce ? 0 : Math.max(0, 1300 - (performance.now() - start));
+    let entered = false;
+    try { entered = sessionStorage.getItem("chance-entered") === "1"; } catch (e) {}
+    const gate = $(".gate");
+    // first visit: a little "Enter the cave" moment (skipped for links straight to a project)
+    if (reduce || entered || !gate || /^#project-/.test(location.hash)) { setTimeout(reveal, wait); return; }
     setTimeout(() => {
-      document.body.classList.add("loaded");
-      setTimeout(() => { const l = $(".loader"); if (l) l.remove(); }, 1100);
-      route();
+      const loader = $(".loader");
+      loader.removeAttribute("aria-hidden");
+      loader.setAttribute("role", "dialog"); loader.setAttribute("aria-label", "Welcome");
+      $(".loader-text").textContent = "welcome in";
+      gate.hidden = false;
+      $(".gate-enter").focus({ preventScroll: true });
+      $$("[data-enter]", gate).forEach(b => b.addEventListener("click", () => {
+        try { sessionStorage.setItem("chance-entered", "1"); } catch (e) {}
+        if (b.dataset.enter === "sound") document.dispatchEvent(new CustomEvent("chance-sound-on"));
+        document.dispatchEvent(new CustomEvent("chance-light"));
+        loader.classList.add("entering");
+        setTimeout(reveal, 450);
+      }, { once: true }));
     }, wait);
   }
   const fontsReady = document.fonts ? document.fonts.ready : Promise.resolve();
@@ -1219,7 +1328,8 @@
         LAN.x = lx; LAN.y = ly + u;
         if (lx > -80 && lx < W + 80) {
           ctx.strokeStyle = "#0b1714"; ctx.lineWidth = Math.max(1, 2 * s); ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(lx, ly); ctx.stroke();
-          const flick = .85 + .15 * Math.sin(t * .013) * Math.sin(t * .007);
+          const flare = Math.max(0, 1 - (t - flareAt) / 1600);
+          const flick = (.85 + .15 * Math.sin(t * .013) * Math.sin(t * .007)) * (1 + flare * 1.8);
           ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = .9 * flick;
           ctx.drawImage(warm, lx - u * 7, ly + u - u * 7, u * 14, u * 14);
           ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
@@ -1329,6 +1439,8 @@
     }
 
     if (reduce) return;
+    let flareAt = -1e9;
+    document.addEventListener("chance-light", () => { flareAt = performance.now(); LAN.v += .05; });
     document.addEventListener("chance-egg", () => {
       eggUntil = performance.now() + 7000;
       for (let k = 0; k < 70; k++) flies.push(mkFly(W / 2 + (R() - .5) * 200, H / 2 + (R() - .5) * 120, true));

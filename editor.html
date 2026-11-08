@@ -81,7 +81,7 @@
   if (!S) S = JSON.parse(JSON.stringify(original));
   S.profile = S.profile || {}; S.contact = S.contact || {};
   ["timeline", "skills", "projects", "tools"].forEach(k => S[k] = S[k] || []);
-  ["bio", "facts", "process", "services"].forEach(k => S.profile[k] = S.profile[k] || []);
+  ["bio", "facts", "process", "services", "inlinePics"].forEach(k => S.profile[k] = S.profile[k] || []);
 
   const app = document.getElementById("app");
   const status = document.getElementById("status");
@@ -173,6 +173,8 @@
       field("Bio", P, "bio", Object.assign({ area: true, hint: "Leave an empty line between paragraphs." }, paras)),
       h("label", { text: "Quick facts" }),
       rows(P.facts, ["label", "value"], ["Label", "Value"], "Add fact", { label: "", value: "" }),
+      h("label", { text: "Little pictures inside the first About sentence (word + picture file)" }),
+      rows(P.inlinePics, ["word", "image"], ["Word from the sentence, like armor", "Picture, like red-knight-1.jpg"], "Add little picture", { word: "", image: "" }),
       field("What I do, one per line", P, "services", Object.assign({ area: true }, lines)),
       field("Line under \"What I do\"", P, "servicesNote", { area: true }),
       h("label", { text: "Timeline" }),
@@ -315,7 +317,7 @@
     S = JSON.parse(JSON.stringify(original));
     S.profile = S.profile || {}; S.contact = S.contact || {};
     ["timeline", "skills", "projects", "tools"].forEach(k => S[k] = S[k] || []);
-    ["bio", "facts", "process", "services"].forEach(k => S.profile[k] = S.profile[k] || []);
+    ["bio", "facts", "process", "services", "inlinePics"].forEach(k => S.profile[k] = S.profile[k] || []);
     render(); status.textContent = "Back to the live content";
   });
   render();

@@ -22,6 +22,12 @@ window.SITE = {
       { label: "Blender", value: "2.5 yrs" },
       { label: "Building", value: "3 yrs" }
     ],
+    /* little pictures that show up inside the first About sentence (word: picture file) */
+    inlinePics: [
+      { word: "armor", image: "red-knight-1.jpg" },
+      { word: "creatures", image: "dragon-1.jpg" },
+      { word: "environments", image: "train-interior-1.jpg" }
+    ],
     /* "What I do" list + the line under it */
     services: [
       "Props, weapons, clothing & accessories",
