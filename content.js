@@ -30,12 +30,28 @@ window.SITE = {
   },
 
   /* Software shown as framed pictures at the top.
-     image: leave "" for the hand-drawn sketch, or "images/blender-logo.png" */
+     Upload the logo files into the images folder with these names.
+     If a file is missing, a hand-drawn sketch shows instead. */
   tools: [
-    { name: "Blender", image: "" },
-    { name: "Substance Painter", image: "" },
-    { name: "Roblox Studio", image: "" }
+    { name: "Blender", image: "images/blender.png" },
+    { name: "Substance Painter", image: "images/substance-painter.png" },
+    { name: "Roblox Studio", image: "images/roblox-studio.png" }
   ],
+
+  /* Titles and button text around the site */
+  labels: {
+    work: "Work",
+    workNote: "click a frame to flip it",
+    about: "About",
+    howIWork: "How I work",
+    soFar: "So far",
+    skills: "Skills",
+    contact: "Contact",
+    contactTitle: "Have a model or scene in mind?",
+    contactText: "I'm open to commissions and collaborations. Send me a message on Discord or X with what you need and we'll work it out from there.",
+    heroButton1: "See my work",
+    heroButton2: "Commission me"
+  },
 
   timeline: [
     { when: "2023", text: "Started building and environment art" },
@@ -58,16 +74,22 @@ window.SITE = {
   },
 
   /* PROJECTS
-     image:   "images/my-render.jpg"  (upload the file into an images folder)
-     gallery: ["images/a.jpg", "images/b.jpg"]  extra images, optional
-     video:   "images/turntable.mp4" or a YouTube link, optional
-     featured: true makes it a big frame at the top of the wall */
+     image:   main picture OR video: "images/render.jpg", "images/turntable.mp4" or a YouTube link
+     gallery: more pictures/videos for the full view: ["images/a.jpg", "images/b.mp4"]
+     featured: true makes it a big frame at the top of the wall
+     Delete a whole { ... } line to remove a slot. */
   projects: [
     { title: "Project 01", category: "3D art", description: "", image: "", gallery: [], video: "", link: "https://fixupx.com/Chancy2476/status/2117361917736173888", featured: true },
     { title: "Project 02", category: "3D art", description: "", image: "", gallery: [], video: "", link: "https://fixupx.com/Chancy2476/status/2113628601736184142", featured: false },
     { title: "Project 03", category: "3D art", description: "", image: "", gallery: [], video: "", link: "https://fixupx.com/Chancy2476/status/2113594323107516612", featured: false },
     { title: "Project 04", category: "3D art", description: "", image: "", gallery: [], video: "", link: "https://fixupx.com/Chancy2476/status/2112355569801531419", featured: true },
     { title: "Project 05", category: "3D art", description: "", image: "", gallery: [], video: "", link: "https://x.com/Chancy2476/status/2074144249428234703", featured: false },
-    { title: "Project 06", category: "3D art", description: "", image: "", gallery: [], video: "", link: "https://x.com/Chancy2476/status/2071539801388396868", featured: false }
+    { title: "Project 06", category: "3D art", description: "", image: "", gallery: [], video: "", link: "https://x.com/Chancy2476/status/2071539801388396868", featured: false },
+    { title: "Project 07", category: "3D art", description: "", image: "", gallery: [], video: "", link: "", featured: false },
+    { title: "Project 08", category: "3D art", description: "", image: "", gallery: [], video: "", link: "", featured: false },
+    { title: "Project 09", category: "3D art", description: "", image: "", gallery: [], video: "", link: "", featured: false },
+    { title: "Project 10", category: "3D art", description: "", image: "", gallery: [], video: "", link: "", featured: false },
+    { title: "Project 11", category: "3D art", description: "", image: "", gallery: [], video: "", link: "", featured: false },
+    { title: "Project 12", category: "3D art", description: "", image: "", gallery: [], video: "", link: "", featured: false }
   ]
 };

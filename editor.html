@@ -64,7 +64,7 @@
       <li>Change anything below. Your edits are kept in this browser while you work.</li>
       <li>Click <b>Preview site</b> to check it.</li>
       <li>Click <b>Download content.js</b>, then upload it to your GitHub repo (replace the old one).</li>
-      <li>Images and videos: upload them into the <code>images</code> folder on GitHub, then type the path here, like <code>images/house.jpg</code>.</li>
+      <li>Pictures and videos: upload them into the <code>images</code> folder on GitHub, then type the path here, like <code>images/house.jpg</code> or <code>images/turntable.mp4</code>. YouTube links work too.</li>
     </ol>
   </div>
   <div id="app"></div>
@@ -141,11 +141,20 @@
   }
 
   function thumbFor(path) {
-    const img = h("img", { class: "thumb", alt: "" });
-    const upd = p => { img.hidden = !p || /\.(mp4|webm|mov)$/i.test(p); if (!img.hidden) img.src = p; };
-    img.addEventListener("error", () => { img.hidden = true; });
+    const box = h("div");
+    const yt = s => { const m = /(?:youtu\.be\/|[?&]v=|embed\/|shorts\/)([\w-]{11})/.exec(s || ""); return m && m[1]; };
+    const upd = p => {
+      box.textContent = "";
+      if (!p) return;
+      let n;
+      if (/\.(mp4|webm|mov)(\?|$)/i.test(p)) { n = h("video", { class: "thumb", src: p, muted: "", loop: "", autoplay: "", playsinline: "" }); n.muted = true; }
+      else if (yt(p)) n = h("img", { class: "thumb", alt: "", src: "https://i.ytimg.com/vi/" + yt(p) + "/hqdefault.jpg" });
+      else n = h("img", { class: "thumb", alt: "", src: p });
+      n.addEventListener("error", () => { box.textContent = ""; box.append(h("p", { class: "help", text: "Can't find that file yet. Check it's uploaded and the name matches." })); });
+      box.append(n);
+    };
     upd(path);
-    return { img, upd };
+    return { img: box, upd };
   }
 
   function render() {
@@ -170,10 +179,19 @@
       rows(S.timeline, ["when", "text"], ["When (e.g. 2023)", "What happened"], "Add timeline entry", { when: "", text: "" })
     ));
 
+    // titles + buttons
+    S.labels = S.labels || {};
+    const LB = S.labels;
+    const labelNames = [["work", "Work section title"], ["workNote", "Note next to Work"], ["about", "About section title"], ["howIWork", "\"How I work\" title"], ["soFar", "Timeline title"], ["skills", "Skills section title"], ["contact", "Contact menu link"], ["heroButton1", "First button"], ["heroButton2", "Second button"], ["contactTitle", "Contact big title"], ["contactText", "Contact text"]];
+    app.append(h("section", {},
+      h("h2", { text: "Titles & buttons" }),
+      h("p", { class: "help", text: "Change the words used around the site. Menu links use the section titles." }),
+      h("div", { class: "two" }, labelNames.map(([k, lab]) => field(lab, LB, k, { area: k === "contactText" })))));
+
     // software frames at the top
     app.append(h("section", {},
       h("h2", { text: "Software (top of the page)" }),
-      h("p", { class: "help", text: "Up to 3. Leave the image empty to use the hand-drawn sketch, or type a path like images/blender.png" }),
+      h("p", { class: "help", text: "Up to 3. Upload the logo into the images folder and type its path, like images/blender.png. If the file is missing, a hand-drawn sketch shows instead." }),
       rows(S.tools, ["name", "image"], ["Software name", "Image path (optional)"], "Add software", { name: "", image: "" })));
 
     // skills
@@ -224,10 +242,10 @@
             field("Category", p, "category", { list: "cats", hint: "Filters appear once you use 2+ categories." })),
           field("Description", p, "description", { area: true, hint: "Leave an empty line between paragraphs." }),
           h("div", { class: "two" },
-            h("div", {}, field("Main image", p, "image", { ph: "images/my-render.jpg", after: th.upd }), th.img),
+            h("div", {}, field("Main picture or video", p, "image", { ph: "images/render.jpg or images/turntable.mp4", hint: "A picture, an .mp4/.webm video, or a YouTube link. Videos play silently on the wall.", after: th.upd }), th.img),
             h("div", {},
-              field("Extra images, one per line", p, "gallery", Object.assign({ area: true }, lines)),
-              field("Video (file or YouTube link)", p, "video", { ph: "images/turntable.mp4" }))),
+              field("More pictures or videos, one per line", p, "gallery", Object.assign({ area: true, hint: "Shown in the full project view." }, lines)),
+              field("Extra video (optional)", p, "video", { ph: "YouTube link or images/clip.mp4" }))),
           field("Link", p, "link", { type: "url", ph: "https://x.com/..." }),
           h("label", { class: "check", for: "feat" + i }, feat, "Featured (big panel, shown first)")));
       });
@@ -235,7 +253,8 @@
     drawProjects();
     app.append(h("section", {},
       h("div", { class: "box-head" }, h("h2", { text: "Projects" }),
-        h("button", { type: "button", class: "primary", text: "Add project", onclick: () => { S.projects.unshift({ title: "New project", category: "", description: "", image: "", gallery: [], video: "", link: "", featured: false }); save("Added"); drawProjects(); } })),
+        h("button", { type: "button", class: "primary", text: "Add project", onclick: () => { S.projects.unshift({ title: "New project", category: "3D art", description: "", image: "", gallery: [], video: "", link: "", featured: false }); save("Added"); drawProjects(); } })),
+      h("p", { class: "help", text: "Video tip: keep video files under 25 MB (GitHub's upload limit). Bigger ones: put them on YouTube and paste the link." }),
       dl, projWrap));
   }
 

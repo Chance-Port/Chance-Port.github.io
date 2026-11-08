@@ -8,140 +8,165 @@
 <meta property="og:title" content="Chance | 3D artist">
 <meta property="og:description" content="3D assets, environments and models. Open for commissions.">
 <meta property="og:type" content="website">
-<meta name="theme-color" content="#2B2F2A">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='2' y='2' width='28' height='28' fill='%23F3E8D2' stroke='%2316120F' stroke-width='3'/><path d='M16 6l8 5v10l-8 5-8-5V11z' fill='%23B3342B' stroke='%2316120F' stroke-width='2'/></svg>">
+<meta name="theme-color" content="#0B1517">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='3' width='26' height='26' fill='%23E8DCC4' stroke='%23B8935A' stroke-width='4'/><path d='M16 8l7 4v8l-7 4-7-4v-8z' fill='%237E2320' stroke='%231E1A16' stroke-width='1.5'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Patrick+Hand&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=Gochi+Hand&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<a class="skip" href="#book">Skip to content</a>
 
-<header class="topbar">
-  <a href="#cover" class="logo" aria-label="Chance, cover page">Chance <span>#1</span></a>
-  <nav class="toc" aria-label="Pages">
-    <a href="#cover">Cover</a>
-    <a href="#origin">Origin</a>
-    <a href="#gallery">Gallery</a>
-    <a href="#powers">Powers</a>
-    <a href="#contact">Contact</a>
+<div class="loader" aria-hidden="true">
+  <svg viewBox="0 0 80 140" class="candle">
+    <circle class="candle-glow" cx="40" cy="34" r="30"/>
+    <path class="candle-flame" d="M40 14C46 26 50 32 47 40C45 45 35 45 33 40C30 32 34 26 40 14Z"/>
+    <path d="M40 44v8" class="candle-wick"/>
+    <path d="M28 52h24v62H28z" class="candle-body"/>
+    <path d="M28 60c6 3 9-2 12 4" class="candle-drip"/>
+    <path d="M16 114h48l-4 10H20z" class="candle-dish"/>
+  </svg>
+  <p class="loader-text">lighting up</p>
+</div>
+
+<div class="scene" aria-hidden="true"><canvas class="scene-canvas"></canvas></div>
+<div class="cursor" aria-hidden="true"><span class="cursor-label">Flip</span></div>
+<div class="progress" aria-hidden="true"></div>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav" id="nav">
+  <a href="#top" class="nav-logo" aria-label="Chance, back to top">Chance</a>
+  <button class="nav-toggle" aria-expanded="false" aria-controls="nav-links">
+    <span class="sr-only">Menu</span><span class="nav-toggle-bar"></span><span class="nav-toggle-bar"></span>
+  </button>
+  <nav id="nav-links" class="nav-links" aria-label="Main">
+    <a href="#work" data-label="work">Work</a>
+    <a href="#about" data-label="about">About</a>
+    <a href="#skills" data-label="skills">Skills</a>
+    <a href="#contact" data-label="contact">Contact</a>
   </nav>
 </header>
 
-<main class="book" id="book" tabindex="-1">
+<main id="main">
 
-  <!-- COVER -->
-  <article class="page" id="cover" aria-label="Cover">
-    <div class="sheet cover">
-      <div class="mast">
-        <p class="mast-kicker">The adventures of a <span data-role>3D artist</span></p>
-        <h1 class="mast-title" data-name>Chance</h1>
-        <div class="issue"><b>No. 1</b><span data-year></span></div>
+  <section class="hero" id="top">
+    <div class="hero-text">
+      <h1 class="hero-name" data-name>Chance</h1>
+      <p class="hero-role"><span data-role>3D artist</span> from <span data-location>Egypt</span></p>
+      <p class="hero-intro" data-intro></p>
+      <div class="hero-actions">
+        <a href="#work" class="btn btn-red" data-label="heroButton1">See my work</a>
+        <a href="#contact" class="btn btn-line" data-label="heroButton2">Commission me</a>
       </div>
-      <div class="cover-art panel">
-        <div class="speed" aria-hidden="true"></div>
-        <div class="cover-hero" data-cover-art aria-hidden="true"></div>
-        <div class="burst burst-cover" aria-hidden="true"><span>Commissions<br>open!</span></div>
-        <p class="cap cap-tl">From <span data-location>Egypt</span>, age <span data-age></span></p>
-        <p class="cap cap-br" data-intro></p>
-      </div>
-      <div class="cover-foot">
-        <div class="featuring"><span class="feat-label">Featuring</span><span data-featuring></span></div>
-        <div class="cover-actions">
-          <a href="#origin" class="btn btn-red">Start reading</a>
-          <a href="#contact" class="btn btn-paper">Commission me</a>
-        </div>
-      </div>
+      <div class="tool-wall" data-tools aria-label="Software I use"></div>
     </div>
-  </article>
+    <p class="scene-hint">move your mouse, click to release fireflies</p>
+  </section>
 
-  <!-- ORIGIN / ABOUT -->
-  <article class="page" id="origin" aria-labelledby="t-origin">
-    <div class="sheet">
-      <div class="page-head"><span class="page-no">Page 1</span><h2 class="page-title" id="t-origin">Origin story</h2></div>
-      <div class="panels" data-origin></div>
-    </div>
-  </article>
-
-  <!-- GALLERY / WORK -->
-  <article class="page" id="gallery" aria-labelledby="t-gallery">
-    <div class="sheet">
-      <div class="page-head"><span class="page-no">Page 2</span><h2 class="page-title" id="t-gallery">The gallery</h2><p class="page-hint">Tap a panel to zoom in</p></div>
+  <section class="section work" id="work">
+    <div class="section-head">
+      <h2 class="section-title" data-split data-label="work">Work</h2>
+      <p class="note section-note" data-label="workNote">click a frame to flip it</p>
       <div class="filters" role="toolbar" aria-label="Filter projects" hidden></div>
-      <div class="panels" data-gallery></div>
     </div>
-  </article>
+    <div class="wall" id="grid"></div>
+  </section>
 
-  <!-- POWERS / SKILLS -->
-  <article class="page" id="powers" aria-labelledby="t-powers">
-    <div class="sheet">
-      <div class="page-head"><span class="page-no">Page 3</span><h2 class="page-title" id="t-powers">Powers &amp; gear</h2></div>
-      <div class="panels" data-powers></div>
+  <section class="section about" id="about">
+    <div class="section-head">
+      <h2 class="section-title" data-split data-label="about">About</h2>
     </div>
-  </article>
-
-  <!-- CONTACT -->
-  <article class="page" id="contact" aria-labelledby="t-contact">
-    <div class="sheet">
-      <div class="page-head"><span class="page-no">Page 4</span><h2 class="page-title" id="t-contact">To be continued&hellip;</h2></div>
-      <div class="panels">
-        <div class="panel span-12 contact-panel dots-olive">
-          <div class="speed speed-soft" aria-hidden="true"></div>
-          <p class="cap cap-tl">&hellip;with your project?</p>
-          <div class="burst contact-burst" aria-hidden="true"><span>Your idea<br>here!</span></div>
-          <h3 class="contact-title">Have a model or scene in mind?</h3>
-          <p class="contact-text">I'm open to commissions and collaborations. Send me a message on Discord or X with what you need and we'll work it out from there.</p>
-          <div class="contact-bubbles">
-            <button class="bubble bubble-btn" type="button" data-copy-discord>
-              <span class="bubble-label">Discord</span>
-              <span class="bubble-value" data-discord></span>
-              <span class="bubble-action" data-copy-status>Tap to copy</span>
-            </button>
-            <a class="bubble bubble-btn bubble-right" data-x href="#" target="_blank" rel="noopener">
-              <span class="bubble-label">X</span>
-              <span class="bubble-value" data-x-handle></span>
-              <span class="bubble-action">Open profile</span>
-            </a>
-            <a class="bubble bubble-btn" data-email href="#" hidden>
-              <span class="bubble-label">Email</span>
-              <span class="bubble-value" data-email-value></span>
-              <span class="bubble-action">Write an email</span>
-            </a>
-          </div>
-          <p class="cap cap-clock" data-clock></p>
-        </div>
+    <div class="about-grid">
+      <div class="about-bio">
+        <div class="bio" data-bio></div>
+        <h3 class="sub-title" data-label="howIWork">How I work</h3>
+        <ol class="process" data-process></ol>
       </div>
-      <p class="fine-print">&copy; <span data-year></span> <span data-name-plain>Chance</span>. All art by Chance. Printed on the internet.</p>
+      <aside class="about-side">
+        <div class="placard pop">
+          <p class="placard-title" data-name-plain>Chance</p>
+          <dl class="facts" data-facts></dl>
+        </div>
+        <h3 class="sub-title" data-label="soFar">So far</h3>
+        <ol class="timeline" data-timeline></ol>
+      </aside>
     </div>
-  </article>
+  </section>
+
+  <section class="section skills" id="skills">
+    <div class="section-head">
+      <h2 class="section-title" data-split data-label="skills">Skills</h2>
+    </div>
+    <div class="skills-wrap" data-skills></div>
+  </section>
+
+  <section class="contact" id="contact">
+    <div class="contact-inner">
+      <h2 class="contact-title" data-split data-label="contactTitle">Have a model or scene in mind?</h2>
+      <p class="contact-text" data-label="contactText">I'm open to commissions and collaborations. Send me a message on Discord or X with what you need and we'll work it out from there.</p>
+      <div class="contact-links">
+        <button class="tag" type="button" data-copy-discord>
+          <span class="tag-label">Discord</span>
+          <span class="tag-value" data-discord></span>
+          <span class="tag-action" data-copy-status>Copy username</span>
+        </button>
+        <a class="tag" data-x href="#" target="_blank" rel="noopener">
+          <span class="tag-label">X</span>
+          <span class="tag-value" data-x-handle></span>
+          <span class="tag-action">Open profile</span>
+        </a>
+        <a class="tag" data-email href="#" hidden>
+          <span class="tag-label">Email</span>
+          <span class="tag-value" data-email-value></span>
+          <span class="tag-action">Write an email</span>
+        </a>
+      </div>
+      <p class="note contact-clock" data-clock></p>
+    </div>
+    <footer class="footer">
+      <span>&copy; <span data-year></span> <span data-name-plain>Chance</span></span>
+      <a href="#top">Back to top</a>
+    </footer>
+  </section>
 </main>
 
-<nav class="pager" aria-label="Turn pages">
-  <button type="button" class="pager-btn" data-prev>&larr; Back</button>
-  <div class="pager-dots" data-dots></div>
-  <button type="button" class="pager-btn" data-next>Next &rarr;</button>
-</nav>
-
-<!-- project splash page -->
-<div class="splash" id="splash" role="dialog" aria-modal="true" aria-labelledby="splash-title" hidden>
-  <div class="splash-sheet">
-    <div class="splash-top">
-      <p class="cap" data-s-cat></p>
-      <button type="button" class="btn btn-paper splash-close">Close</button>
-    </div>
-    <h2 class="splash-title" id="splash-title" data-s-title></h2>
-    <div class="splash-body">
-      <div class="splash-media" data-s-media></div>
-      <div class="splash-side">
-        <div class="bubble splash-desc" data-s-desc></div>
-        <a class="btn btn-red" data-s-link target="_blank" rel="noopener">View the post on X</a>
+<!-- flipped frame -->
+<div class="flip" id="flip" hidden>
+  <div class="flip-backdrop"></div>
+  <div class="flipper" role="dialog" aria-modal="true" aria-labelledby="flip-title">
+    <div class="face face-front"></div>
+    <div class="face face-back">
+      <span class="tape tape-l" aria-hidden="true"></span><span class="tape tape-r" aria-hidden="true"></span>
+      <button class="flip-close" type="button" aria-label="Close">&times;</button>
+      <p class="back-cat" data-f-cat></p>
+      <h2 class="back-title" id="flip-title" data-f-title></h2>
+      <div class="back-desc" data-f-desc></div>
+      <div class="back-actions">
+        <button class="btn btn-red" type="button" data-f-full>View full project</button>
+        <a class="btn btn-ink-line" data-f-link target="_blank" rel="noopener">View on X</a>
       </div>
     </div>
-    <div class="splash-nav">
-      <button type="button" class="pager-btn" data-s-prev>&larr; Previous</button>
-      <span class="splash-count" data-s-count></span>
-      <button type="button" class="pager-btn" data-s-next>Next &rarr;</button>
+  </div>
+</div>
+
+<!-- full project view -->
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="viewer-title" hidden>
+  <div class="viewer-panel">
+    <button class="viewer-close" type="button" aria-label="Close project">Close</button>
+    <div class="viewer-body">
+      <div class="viewer-media" data-v-media></div>
+      <div class="viewer-info">
+        <p class="viewer-cat" data-v-cat></p>
+        <h2 id="viewer-title" class="viewer-title" data-v-title></h2>
+        <div class="viewer-desc" data-v-desc></div>
+        <a class="btn btn-red viewer-link" data-v-link target="_blank" rel="noopener">View the post on X</a>
+      </div>
+    </div>
+    <div class="viewer-nav">
+      <button type="button" class="viewer-prev">Previous</button>
+      <span class="viewer-count" data-v-count></span>
+      <button type="button" class="viewer-next">Next</button>
     </div>
   </div>
 </div>
