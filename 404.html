@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lost in the cave | Chance</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Gochi+Hand&display=swap" rel="stylesheet">
+<style>
+  :root { --parch: #E8DCC4; --gold: #D9B97E; --red: #7E2320; --muted: #B8AD96; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: grid; place-items: center; text-align: center; overflow: hidden;
+    font-family: "Bricolage Grotesque", Arial, sans-serif; color: var(--parch);
+    background: radial-gradient(900px 600px at 70% 0%, rgba(214, 238, 205, .14), transparent 60%), linear-gradient(180deg, #091418, #0E2226 45%, #11291F 75%, #08130F);
+    padding: 2rem;
+  }
+  .box { position: relative; z-index: 2; }
+  h1 { margin: 0; font-size: clamp(6rem, 26vw, 15rem); line-height: .85; font-weight: 800; font-variation-settings: "opsz" 96, "wdth" 75; color: var(--parch); text-shadow: 6px 6px 0 rgba(126, 35, 32, .7); }
+  p { margin: 1rem auto 2rem; max-width: 26rem; font-size: 1.2rem; color: var(--muted); }
+  .note { font-family: "Gochi Hand", cursive; color: var(--gold); font-size: 1.5rem; margin: .6rem 0 0; }
+  a { display: inline-block; padding: .85rem 1.5rem; background: var(--red); color: var(--parch); font-weight: 700; text-decoration: none; box-shadow: 5px 5px 0 #B8935A; transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+  a:hover { transform: translate(-3px, -3px) rotate(-1.5deg); }
+  .fly { position: fixed; width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle, #F6FFC8, rgba(175,225,120,.35) 45%, transparent 70%); animation: drift 9s ease-in-out infinite alternate, blink 2.4s ease-in-out infinite alternate; }
+  @keyframes drift { to { transform: translate(60px, -80px); } }
+  @keyframes blink { from { opacity: .2; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .fly { animation: none; } }
+</style>
+</head>
+<body>
+  <div class="box">
+    <p class="note">hmm, nothing down here</p>
+    <h1>404</h1>
+    <p>This room's empty. The work's back in the cave.</p>
+    <a href="/">Back to the cave</a>
+  </div>
+  <script>
+    for (let i = 0; i < 22; i++) {
+      const f = document.createElement("span");
+      f.className = "fly";
+      f.style.left = Math.random() * 100 + "vw"; f.style.top = Math.random() * 100 + "vh";
+      f.style.animationDelay = -Math.random() * 9 + "s, " + -Math.random() * 2.4 + "s";
+      document.body.appendChild(f);
+    }
+  </script>
+</body>
+</html>

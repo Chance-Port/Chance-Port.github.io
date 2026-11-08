@@ -99,9 +99,18 @@
   function placeholder(label) {
     return el("div", { class: "placeholder", html: sketch("mesh") }, el("span", { text: label || "Render coming soon" }));
   }
-  function image(src, alt, eager) {
-    const img = el("img", { src, alt: alt || "", loading: eager ? "eager" : "lazy", decoding: "async" });
-    img.addEventListener("error", () => img.replaceWith(placeholder("Image not found")));
+  // small preview versions ("t-" + file name) are used on the wall; full size when opened
+  const isLocal = s => !!s && !/^(https?:)?\/\//i.test(s) && !/^data:/i.test(s);
+  const thumbSrc = s => isLocal(s) && /\.(jpe?g|png|webp)$/i.test(s) ? s.replace(/([^\/]+)$/, "t-$1").replace(/\.(png|webp|jpeg)$/i, ".jpg") : s;
+  function image(src, alt, eager, useThumb) {
+    const first = useThumb ? thumbSrc(src) : src;
+    const img = el("img", { src: first, alt: alt || "", loading: eager ? "eager" : "lazy", decoding: "async", class: "fade" });
+    img._full = src;
+    img.addEventListener("load", () => img.classList.add("is-loaded"));
+    img.addEventListener("error", () => {
+      if (!img._fb && first !== src) { img._fb = 1; img.src = src; }   // no preview yet: use the full picture
+      else img.replaceWith(placeholder("Image not found"));
+    });
     return img;
   }
   const kind = s => ytId(s) ? "yt" : isVideoFile(s) ? "video" : "image";
@@ -121,7 +130,7 @@
     const k = kind(src);
     if (k === "video") return el("div", { style: "display:contents" }, loopVideo(src));
     if (k === "yt") return el("div", { style: "display:contents" }, image("https://i.ytimg.com/vi/" + ytId(src) + "/hqdefault.jpg", alt), el("span", { class: "play-badge", "aria-hidden": "true" }));
-    return image(src, alt);
+    return image(src, alt, false, true);
   }
   // every picture/video of a project, in order
   const mediaList = p => [p.image, ...(p.gallery || []), p.video].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i);
@@ -166,6 +175,14 @@
 
   /* ---------- work wall ---------- */
   const grid = $("#grid");
+  const cardStats = {};
+  const statObs = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    statObs.unobserve(e.target);
+    const p = e.target._p;
+    loadCounts(p).then(() => paintCard(pid(p)));
+  }), { rootMargin: "200px" }) : null;
+
   // the wall is grouped by style, in the order listed in content.js
   const STYLES = (SITE.styles || []).slice();
   const styleOf = p => p.style || STYLES[0] || "";
@@ -192,6 +209,37 @@
       style: `--dy:${p.featured ? 0 : [0, 2.5, 1, 3, .5, 1.8][n % 6]}rem;--d:${(n % 3) * .14}s;--lt:${-tiltDeg}deg`
     }, hang, el("div", { class: "label" }, el("span", { class: "label-title", text: realTitle(p) || catText(p) || "Untitled" }), realTitle(p) && catsOf(p).length ? el("span", { class: "label-cat", text: catText(p) }) : null));
     card.addEventListener("click", e => { e.preventDefault(); openFlip(i, card); });
+    const art = $(".art", tilt);
+    // frame takes the real shape of the render (no black bars)
+    card.addEventListener("load", e => {
+      const im = e.target;
+      if (im.tagName !== "IMG" || !im.naturalWidth || im.classList.contains("cycling")) return;
+      const r = Math.min(2.1, Math.max(.75, im.naturalWidth / im.naturalHeight));
+      art.style.aspectRatio = r.toFixed(3);
+      art.classList.add("ready");
+    }, true);
+    const pics = mediaList(p).filter(m => kind(m) === "image");
+    if (pics.length > 1) {
+      art.append(el("span", { class: "pic-count", "aria-hidden": "true", text: "\u25A3 " + pics.length }));
+      // hover flips through the project's other pictures
+      if (finePointer && !reduce) {
+        let k = 0, timer = 0;
+        pics.slice(1).forEach(src => { const pre = new Image(); pre.src = thumbSrc(src); });
+        const show = idx => {
+          const im = $("img", art); if (!im) return;
+          im.classList.add("cycling"); im.classList.remove("is-loaded");
+          setTimeout(() => { im._fb = 0; im.src = thumbSrc(pics[idx]); im.onerror = () => { im.onerror = null; im.src = pics[idx]; }; }, 160);
+        };
+        card.addEventListener("pointerenter", () => { clearInterval(timer); timer = setInterval(() => { k = (k + 1) % pics.length; show(k); }, 1100); });
+        card.addEventListener("pointerleave", () => { clearInterval(timer); if (k) { k = 0; show(0); } });
+      }
+    }
+    const lbl = $(".label", card);
+    const st = el("span", { class: "label-stats", hidden: "" });
+    lbl.append(st);
+    cardStats[pid(p)] = st;
+    statObs && statObs.observe(card);
+    card._p = p;
     if (finePointer && !reduce) {
       const frame = $(".frame", tilt);
       card.addEventListener("pointerenter", () => swing(hang));
@@ -271,9 +319,40 @@
     });
   }
 
+  /* ---------- sort: default / most liked / most viewed ---------- */
+  const sorter = $("[data-sort]");
+  if (sorter && projects.length > 1) {
+    sorter.hidden = false;
+    const original = [...grid.children];
+    let sorting = false;
+    const flipIn = () => {
+      if (reduce) return;
+      $$(".card:not(.hide)", grid).forEach((c, k) => { const h = $(".hang", c); h.classList.remove("hung", "swing"); c.style.setProperty("--d", (k % 3) * .07 + "s"); void h.offsetWidth; });
+    };
+    const btns = [["d", "Default"], ["l", "Most liked"], ["v", "Most viewed"]].map(([k, t], idx) => {
+      const b = el("button", { type: "button", "aria-pressed": idx ? "false" : "true", text: t });
+      b.addEventListener("click", async () => {
+        if (sorting) return;
+        btns.forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+        if (k === "d") { grid.classList.remove("sorted"); original.forEach(nd => grid.append(nd)); flipIn(); return; }
+        sorting = true; b.textContent = "Counting\u2026";
+        const cards = $$(".card", grid);
+        await Promise.all(cards.map(c => loadCounts(c._p).then(() => paintCard(pid(c._p)))));
+        b.textContent = t; sorting = false;
+        const val = c => (countCache[pid(c._p)] || {})[k] || 0;
+        cards.sort((a, c) => val(c) - val(a) || (+a.dataset.index - +c.dataset.index));
+        grid.classList.add("sorted");
+        cards.forEach(c => grid.append(c));
+        flipIn();
+      });
+      sorter.append(b);
+      return b;
+    });
+  }
+
   /* ---------- likes + views (free Abacus counting service) ---------- */
   const COUNTER = "https://abacus.jasoncameron.dev", NS = "chance-port-gh";
-  const pid = p => String(p.id || (p.image || "").replace(/^.*\//, "").replace(/\.[a-z0-9]+$/i, "") || titleOf(p)).toLowerCase().replace(/[^a-z0-9_-]+/g, "-").slice(0, 40);
+  function pid(p) { return String(p.id || (p.image || "").replace(/^.*\//, "").replace(/\.[a-z0-9]+$/i, "") || titleOf(p)).toLowerCase().replace(/[^a-z0-9_-]+/g, "-").slice(0, 40); }
   async function counter(kind, key) {
     const ctl = "AbortController" in window ? new AbortController() : null;
     const t = setTimeout(() => ctl && ctl.abort(), 6000);
@@ -287,7 +366,35 @@
   }
   const fmtN = n => n >= 10000 ? Math.round(n / 1000) + "k" : n >= 1000 ? (n / 1000).toFixed(1) + "k" : String(n);
   const store = (area, k, v) => { try { const S = window[area]; if (v === undefined) return S.getItem(k); S.setItem(k, v); } catch (e) { return null; } };
-  const countCache = {};
+  // counts are fetched a few at a time and remembered for 10 minutes (keeps the counter service happy)
+  let countCache = {};
+  try { const c = JSON.parse(sessionStorage.getItem("chance-counts") || "null"); if (c && Date.now() - c.t < 6e5) countCache = c.d; } catch (e) {}
+  const saveCounts = () => { try { sessionStorage.setItem("chance-counts", JSON.stringify({ t: Date.now(), d: countCache })); } catch (e) {} };
+  const q = []; let qActive = 0;
+  function pump() {
+    while (qActive < 3 && q.length) {
+      qActive++;
+      const job = q.shift();
+      job().finally(() => { qActive--; setTimeout(pump, 120); });
+    }
+  }
+  const queued = fn => new Promise(res => { q.push(() => fn().then(res, res)); pump(); });
+  const pending = {};
+  function loadCounts(p) {
+    const id = pid(p), c = countCache[id] || (countCache[id] = {});
+    if (c.v != null && c.l != null) return Promise.resolve(c);
+    if (pending[id]) return pending[id];
+    return pending[id] = queued(() => Promise.all([
+      c.v != null ? c.v : counter("get", "v-" + id),
+      c.l != null ? c.l : counter("get", "l-" + id)
+    ]).then(([v, l]) => { if (v != null) c.v = v; if (l != null) c.l = l; saveCounts(); delete pending[id]; return c; }));
+  }
+  function paintCard(id) {
+    const st = cardStats[id], c = countCache[id];
+    if (!st || !c || (c.v == null && c.l == null)) return;
+    st.textContent = (c.l != null ? "\u2665 " + fmtN(c.l) : "") + (c.l != null && c.v != null ? "  \u00B7  " : "") + (c.v != null ? "\uD83D\uDC41 " + fmtN(c.v) : "");
+    st.hidden = false;
+  }
   function statsFor(p, box) {
     if (!box) return;
     const id = pid(p);
@@ -304,11 +411,11 @@
     if (firstView) store("sessionStorage", "chance-seen-" + id, "1");
     (firstView ? counter("hit", "v-" + id) : (cache.v != null ? Promise.resolve(cache.v) : counter("get", "v-" + id))).then(v => {
       if (v == null) { views.hidden = true; return; }
-      cache.v = v; $("b", views).textContent = fmtN(v);
+      cache.v = v; $("b", views).textContent = fmtN(v); saveCounts(); paintCard(id);
     });
     (cache.l != null ? Promise.resolve(cache.l) : counter("get", "l-" + id)).then(v => {
       if (v == null) { like.hidden = true; return; }
-      cache.l = v; $("b", like).textContent = fmtN(v);
+      cache.l = v; $("b", like).textContent = fmtN(v); paintCard(id);
     });
     like.addEventListener("click", e => {
       if (like.classList.contains("liked")) return;
@@ -318,7 +425,8 @@
       store("localStorage", "chance-liked-" + id, "1");
       const r = like.getBoundingClientRect();
       sparks(e.clientX || r.left + r.width / 2, e.clientY || r.top);
-      counter("hit", "l-" + id).then(v => { if (v != null) { cache.l = v; $("b", like).textContent = fmtN(v); } });
+      paintCard(id);
+      counter("hit", "l-" + id).then(v => { if (v != null) { cache.l = v; $("b", like).textContent = fmtN(v); saveCounts(); paintCard(id); } });
     });
   }
   // total site visits (once per visit) in the footer
@@ -420,7 +528,7 @@
       const k = kind(src), label = titleOf(p) + " " + (k === "image" ? "image " : "video ") + (n + 1);
       if (k === "yt") add(el("iframe", { src: "https://www.youtube-nocookie.com/embed/" + ytId(src), title: label, allow: "autoplay; encrypted-media; picture-in-picture", allowfullscreen: "", loading: "lazy" }));
       else if (k === "video") { const v = el("video", { src, controls: "", playsinline: "", preload: "metadata", "aria-label": label }); v.addEventListener("error", () => v.replaceWith(placeholder("Video not found"))); add(v); }
-      else add(image(src, label, n === 0));
+      else { const im = image(src, label, n === 0); im.classList.add("zoomable"); im.dataset.z = mediaList(p).filter(m => kind(m) === "image").indexOf(src); add(im); }
     });
     if (!media.children.length) add(placeholder(), true);
     // reference images (only for projects that have them)
@@ -517,6 +625,88 @@
     }, 320);
   }
   $(".viewer-close", viewer).addEventListener("click", requestClose);
+
+  /* ---------- zoom: click a picture, scroll/pinch to zoom, drag to look around ---------- */
+  const zoom = $("#zoom"), zImg = $("img", zoom);
+  let zList = [], zIdx = 0, zs = 1, zx = 0, zy = 0, zLastFocus = null;
+  const zApply = anim => { zImg.style.transition = anim ? "transform .35s cubic-bezier(.22,.8,.2,1)" : "none"; zImg.style.transform = `translate(${zx}px,${zy}px) scale(${zs})`; zoom.classList.toggle("zoomed", zs > 1.01); };
+  const zReset = () => { zs = 1; zx = zy = 0; zApply(true); };
+  function zoomAt(f, cx, cy, anim) {
+    const ns = Math.min(6, Math.max(1, zs * f)), k = ns / zs;
+    const dx = cx - innerWidth / 2, dy = cy - innerHeight / 2;
+    zx = zx * k + dx * (1 - k); zy = zy * k + dy * (1 - k); zs = ns;
+    if (zs <= 1.001) { zs = 1; zx = zy = 0; }
+    zApply(anim);
+  }
+  function openZoom(list, idx) {
+    zList = list; zIdx = idx; zLastFocus = document.activeElement;
+    zImg.src = list[idx]; zImg.alt = $("[data-v-title]", viewer).textContent + " (zoomed)";
+    zoom.hidden = false; zReset();
+    $(".zoom-prev", zoom).hidden = $(".zoom-next", zoom).hidden = list.length < 2;
+    $(".zoom-count", zoom).textContent = list.length > 1 ? (idx + 1) + " / " + list.length : "";
+    $(".zoom-close", zoom).focus({ preventScroll: true });
+  }
+  function closeZoom() { zoom.hidden = true; zImg.removeAttribute("src"); if (zLastFocus) zLastFocus.focus({ preventScroll: true }); }
+  function zGo(d) {
+    if (zList.length < 2) return;
+    zIdx = (zIdx + d + zList.length) % zList.length;
+    zImg.src = zList[zIdx]; zReset();
+    $(".zoom-count", zoom).textContent = (zIdx + 1) + " / " + zList.length;
+    if (!reduce) zImg.animate([{ opacity: 0, transform: `translateX(${d * 40}px)` }, { opacity: 1, transform: "none" }], { duration: 300, easing: "ease-out" });
+  }
+  $("[data-v-media]", viewer).addEventListener("click", e => {
+    const im = e.target.closest("img.zoomable");
+    if (!im || current < 0) return;
+    const list = mediaList(projects[current]).filter(m => kind(m) === "image");
+    openZoom(list, Math.max(0, +im.dataset.z || 0));
+  });
+  $(".zoom-close", zoom).addEventListener("click", closeZoom);
+  $(".zoom-prev", zoom).addEventListener("click", () => zGo(-1));
+  $(".zoom-next", zoom).addEventListener("click", () => zGo(1));
+  zoom.addEventListener("wheel", e => { e.preventDefault(); zoomAt(e.deltaY < 0 ? 1.18 : 1 / 1.18, e.clientX, e.clientY, false); }, { passive: false });
+  zImg.addEventListener("dblclick", e => { if (zs > 1.01) zReset(); else zoomAt(2.5, e.clientX, e.clientY, true); });
+  const ptrs = new Map();
+  let pinch0 = 0, moved = 0, down = null;
+  zoom.addEventListener("pointerdown", e => {
+    if (e.target.closest("button")) return;
+    zoom.setPointerCapture(e.pointerId);
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    moved = 0; down = { x: e.clientX, y: e.clientY, t: performance.now() };
+    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); }
+  });
+  zoom.addEventListener("pointermove", e => {
+    const prev = ptrs.get(e.pointerId); if (!prev) return;
+    const cur = { x: e.clientX, y: e.clientY };
+    ptrs.set(e.pointerId, cur);
+    moved += Math.abs(cur.x - prev.x) + Math.abs(cur.y - prev.y);
+    if (ptrs.size === 2) {
+      const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (pinch0) zoomAt(d / pinch0, (a.x + b.x) / 2, (a.y + b.y) / 2, false);
+      pinch0 = d;
+    } else if (zs > 1.01) { zx += cur.x - prev.x; zy += cur.y - prev.y; zApply(false); }
+  });
+  const ptrEnd = e => {
+    if (!ptrs.has(e.pointerId)) return;
+    ptrs.delete(e.pointerId);
+    if (ptrs.size < 2) pinch0 = 0;
+    if (ptrs.size || !down) return;
+    const dx = e.clientX - down.x, dy = e.clientY - down.y;
+    if (zs <= 1.01 && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) zGo(dx < 0 ? 1 : -1);
+    else if (moved < 6 && e.target === zoom) closeZoom();
+    down = null;
+  };
+  zoom.addEventListener("pointerup", ptrEnd);
+  zoom.addEventListener("pointercancel", ptrEnd);
+
+  // swipe between projects in the full view on phones
+  let vt = null;
+  viewer.addEventListener("touchstart", e => { if (e.touches.length === 1) vt = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() }; }, { passive: true });
+  viewer.addEventListener("touchend", e => {
+    if (!vt || !zoom.hidden) return;
+    const t = e.changedTouches[0], dx = t.clientX - vt.x, dy = t.clientY - vt.y;
+    if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8 && Date.now() - vt.t < 600) step(dx < 0 ? 1 : -1);
+    vt = null;
+  }, { passive: true });
   $(".viewer-prev", viewer).addEventListener("click", () => step(-1));
   $(".viewer-next", viewer).addEventListener("click", () => step(1));
 
@@ -527,6 +717,15 @@
     else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
   }
   document.addEventListener("keydown", e => {
+    if (!zoom.hidden) {
+      if (e.key === "Escape") closeZoom();
+      else if (e.key === "ArrowRight") zGo(1);
+      else if (e.key === "ArrowLeft") zGo(-1);
+      else if (e.key === "+" || e.key === "=") zoomAt(1.3, innerWidth / 2, innerHeight / 2, true);
+      else if (e.key === "-") zoomAt(1 / 1.3, innerWidth / 2, innerHeight / 2, true);
+      else if (e.key === "Tab") trapTab(e, zoom);
+      return;
+    }
     if (!viewer.hidden) {
       if (e.key === "Escape") requestClose();
       else if (e.key === "ArrowRight") step(1);
@@ -701,6 +900,70 @@
     });
   }
 
+  /* ---------- secret: type "chance" or poke the lantern 5 times ---------- */
+  let typed = "";
+  document.addEventListener("keydown", e => {
+    if (e.target.closest && e.target.closest("input, textarea")) return;
+    if (e.key.length !== 1) return;
+    typed = (typed + e.key.toLowerCase()).slice(-6);
+    if (typed === "chance") { typed = ""; document.dispatchEvent(new CustomEvent("chance-egg")); }
+  });
+  document.addEventListener("chance-egg", () => {
+    const flash = el("div", { class: "egg-flash", "aria-hidden": "true" });
+    const toast = el("div", { class: "egg-toast", role: "status", text: "\u2726 u found the secret \u2726" });
+    document.body.append(flash, toast);
+    setTimeout(() => { flash.remove(); }, 1200);
+    setTimeout(() => { toast.classList.add("out"); setTimeout(() => toast.remove(), 600); }, 3200);
+  });
+
+  /* ---------- cozy sound (rain + waterfall), made live in the browser, off by default ---------- */
+  (function sound() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    const btn = el("button", { type: "button", class: "sound-btn", "aria-pressed": "false", "aria-label": "Cozy sound" }, el("span", { class: "snd-ico", "aria-hidden": "true", text: "\uD83D\uDD08" }), el("span", { class: "snd-txt", text: "sound" }));
+    document.body.append(btn);
+    let ac = null, master = null, on = false;
+    function build() {
+      ac = new AC();
+      master = ac.createGain(); master.gain.value = 0; master.connect(ac.destination);
+      const len = ac.sampleRate * 4;
+      const white = ac.createBuffer(1, len, ac.sampleRate), wd = white.getChannelData(0);
+      for (let i = 0; i < len; i++) wd[i] = Math.random() * 2 - 1;
+      const brown = ac.createBuffer(1, len, ac.sampleRate), bd = brown.getChannelData(0);
+      let lastB = 0;
+      for (let i = 0; i < len; i++) { lastB = (lastB + .02 * (Math.random() * 2 - 1)) / 1.02; bd[i] = lastB * 3.5; }
+      // rain: soft high hiss
+      const rain = ac.createBufferSource(); rain.buffer = white; rain.loop = true;
+      const hp = ac.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 1200;
+      const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 6000;
+      const rg = ac.createGain(); rg.gain.value = .045;
+      rain.connect(hp).connect(lp).connect(rg).connect(master);
+      // waterfall: deep rumble that breathes a little
+      const fall = ac.createBufferSource(); fall.buffer = brown; fall.loop = true;
+      const fl = ac.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.value = 700;
+      const fg = ac.createGain(); fg.gain.value = .5;
+      const lfo = ac.createOscillator(); lfo.frequency.value = .08;
+      const lg = ac.createGain(); lg.gain.value = .12; lfo.connect(lg).connect(fg.gain);
+      fall.connect(fl).connect(fg).connect(master);
+      rain.start(); fall.start(); lfo.start();
+    }
+    function set(v) {
+      on = v;
+      btn.setAttribute("aria-pressed", v ? "true" : "false");
+      $(".snd-ico", btn).textContent = v ? "\uD83D\uDD0A" : "\uD83D\uDD08";
+      try { localStorage.setItem("chance-sound", v ? "1" : "0"); } catch (e) {}
+      if (v && !ac) build();
+      if (!ac) return;
+      if (v && ac.state === "suspended") ac.resume();
+      master.gain.cancelScheduledValues(ac.currentTime);
+      master.gain.setTargetAtTime(v ? .9 : 0, ac.currentTime, .6);
+    }
+    btn.addEventListener("click", () => set(!on));
+    // if it was on last time, turn it back on at the first tap (browsers need a tap first)
+    let pref = null; try { pref = localStorage.getItem("chance-sound"); } catch (e) {}
+    if (pref === "1") addEventListener("pointerdown", function first(e) { removeEventListener("pointerdown", first); if (!e.target.closest(".sound-btn")) set(true); });
+  })();
+
   /* ---------- cozy cave scene ---------- */
   caveScene();
 
@@ -860,7 +1123,22 @@
     { const g = spr.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
       gr.addColorStop(0, "rgba(246,255,200,1)"); gr.addColorStop(.16, "rgba(225,248,150,.95)"); gr.addColorStop(.42, "rgba(175,225,120,.28)"); gr.addColorStop(1, "rgba(150,210,120,0)");
       g.fillStyle = gr; g.fillRect(0, 0, 64, 64); }
+    function glowSprite(c0, c1) {
+      const c = document.createElement("canvas"); c.width = c.height = 64;
+      const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      gr.addColorStop(0, c0); gr.addColorStop(.25, c1); gr.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return c;
+    }
+    const cyan = glowSprite("rgba(200,255,245,.9)", "rgba(110,230,215,.35)");
+    const warm = glowSprite("rgba(255,236,190,1)", "rgba(246,190,100,.45)");
+    const gold = glowSprite("rgba(255,245,200,1)", "rgba(255,200,80,.6)");
     const R = Math.random, small = W < 700;
+    // glowing mushrooms (spots in the cave's own coordinates)
+    const MUSH = [[150, 968, 18], [192, 976, 13], [238, 955, 22], [330, 986, 12], [1328, 988, 14], [1366, 978, 19], [1612, 978, 16], [1652, 968, 22], [1694, 982, 12]];
+    // hanging lantern: a little pendulum you can push or click
+    const LAN = { ax: 1640, ay: 88, len: 170, a: 0, v: 0, x: -999, y: -999, clicks: 0 };
+    const leaves = Array.from({ length: small ? 5 : 9 }, () => ({ x: R(), y: R() * 1.2 - .2, s: .6 + R() * .7, vy: .18 + R() * .25, rot: R() * 6.28, vr: (R() - .5) * .03, ph: R() * 6.28 }));
+    let eggUntil = 0, lastPx = -9999;
     const flies = [], baseFlies = small ? 22 : 40;
     const mkFly = (x, y, burst) => ({ x: x ?? R() * W, y: y ?? R() * H, z: .35 + R() * .65, a: R() * 6.28, sp: .25 + R() * .45, ph: R() * 6.28, vx: burst ? (R() - .5) * 9 : 0, vy: burst ? (R() - .5) * 9 : 0 });
     for (let i = 0; i < baseFlies; i++) flies.push(mkFly());
@@ -872,10 +1150,19 @@
 
     let tmx = 0, tmy = 0, mx = 0, my = 0, px = -9999, py = -9999;
     if (!reduce) {
-      addEventListener("pointermove", e => { px = e.clientX; py = e.clientY; tmx = px / W * 2 - 1; tmy = py / H * 2 - 1; }, { passive: true });
+      addEventListener("pointermove", e => {
+        const dxp = lastPx > -999 ? e.clientX - lastPx : 0; lastPx = e.clientX;
+        px = e.clientX; py = e.clientY; tmx = px / W * 2 - 1; tmy = py / H * 2 - 1;
+        if (Math.hypot(px - LAN.x, py - LAN.y) < 45) LAN.v += dxp * .0009;
+      }, { passive: true });
       document.addEventListener("pointerleave", () => { px = py = -9999; });
       addEventListener("pointerdown", e => {
-        if (e.target.closest("a, button, input, textarea, .card, .tool, .flip, .viewer, .nav")) return;
+        if (e.target.closest("a, button, input, textarea, .card, .tool, .flip, .viewer, .nav, .zoom")) return;
+        if (Math.hypot(e.clientX - LAN.x, e.clientY - LAN.y) < 40) {
+          LAN.v += (e.clientX < LAN.x ? 1 : -1) * .035;
+          if (++LAN.clicks >= 5) { LAN.clicks = 0; document.dispatchEvent(new CustomEvent("chance-egg")); }
+          return;
+        }
         for (let k = 0; k < 10; k++) flies.push(mkFly(e.clientX, e.clientY, true));
         while (flies.length > baseFlies + 50) flies.splice(baseFlies, 1);
         if (hint) hint.style.opacity = 0;
@@ -912,6 +1199,39 @@
       });
       ctx.stroke();
       layer(bmp.mid, .55);
+      // glowing mushrooms
+      MUSH.forEach(([vx, vy, sz], k) => {
+        const [x, y, s] = midMap(vx, vy), u = sz * s, pulse = .55 + .3 * Math.sin(t * .0016 + k * 1.7);
+        if (x < -60 || x > W + 60) return;
+        ctx.fillStyle = "#1b3a35"; ctx.fillRect(x - u * .12, y - u * .9, u * .24, u * .9);
+        ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = pulse;
+        ctx.drawImage(cyan, x - u * 2.6, y - u * 3.4, u * 5.2, u * 5.2);
+        ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = .9;
+        ctx.fillStyle = "#8ff1e2"; ctx.beginPath(); ctx.ellipse(x, y - u * .9, u * .62, u * .42, 0, Math.PI, 0); ctx.fill();
+        ctx.fillStyle = "#d8fff7"; ctx.beginPath(); ctx.arc(x - u * .2, y - u * 1.08, u * .08, 0, 6.29); ctx.arc(x + u * .18, y - u * 1.02, u * .06, 0, 6.29); ctx.fill();
+        ctx.globalAlpha = 1;
+      });
+      // lantern on a rope
+      {
+        const [ax, ay, s] = midMap(LAN.ax, LAN.ay);
+        LAN.v += (-Math.sin(LAN.a) * .0016 + Math.sin(t * .0007) * .00008) * dt / 16; LAN.v *= .992; LAN.a += LAN.v * dt / 16;
+        const L = LAN.len * s, lx = ax + Math.sin(LAN.a) * L, ly = ay + Math.cos(LAN.a) * L, u = 9 * s * 1.6;
+        LAN.x = lx; LAN.y = ly + u;
+        if (lx > -80 && lx < W + 80) {
+          ctx.strokeStyle = "#0b1714"; ctx.lineWidth = Math.max(1, 2 * s); ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(lx, ly); ctx.stroke();
+          const flick = .85 + .15 * Math.sin(t * .013) * Math.sin(t * .007);
+          ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = .9 * flick;
+          ctx.drawImage(warm, lx - u * 7, ly + u - u * 7, u * 14, u * 14);
+          ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+          ctx.save(); ctx.translate(lx, ly); ctx.rotate(-LAN.a);
+          ctx.fillStyle = "#0e1a17"; ctx.beginPath(); ctx.moveTo(-u * .7, u * .35); ctx.lineTo(u * .7, u * .35); ctx.lineTo(0, -u * .2); ctx.fill();
+          ctx.fillStyle = "rgba(255,214,140," + (.85 * flick).toFixed(2) + ")"; ctx.fillRect(-u * .55, u * .35, u * 1.1, u * 1.4);
+          ctx.strokeStyle = "#0e1a17"; ctx.lineWidth = Math.max(1, 2.2 * s); ctx.strokeRect(-u * .55, u * .35, u * 1.1, u * 1.4);
+          ctx.beginPath(); ctx.moveTo(0, u * .35); ctx.lineTo(0, u * 1.75); ctx.stroke();
+          ctx.fillStyle = "#0e1a17"; ctx.fillRect(-u * .7, u * 1.72, u * 1.4, u * .22);
+          ctx.restore();
+        }
+      }
 
       // waterfall
       const [ax, ay, s] = midMap(WF.x0, WF.y0), [bx, by] = midMap(WF.x1, WF.y1);
@@ -967,12 +1287,25 @@
         if (d2 < 22500) { const d = Math.sqrt(d2) || 1, push = (150 - d) / 150 * .9; f.vx += dx / d * push; f.vy += dy / d * push; }
         if (f.x < -40) f.x = W + 40; else if (f.x > W + 40) f.x = -40;
         if (f.y < -40 - shiftY) f.y = H + 40; else if (f.y > H + 40 + shiftY) f.y = -40;
-        const size = 8 + 20 * f.z, al = (.45 + .55 * Math.sin(t * .0021 + f.ph * 3)) * (.45 + .55 * f.z);
+        const egg = t < eggUntil;
+        const size = (8 + 20 * f.z) * (egg ? 1.6 : 1), al = (.45 + .55 * Math.sin(t * .0021 + f.ph * 3)) * (.45 + .55 * f.z);
         if (al <= 0.02) return;
-        ctx.globalAlpha = al;
-        ctx.drawImage(spr, sx - size / 2, sy - size / 2, size, size);
+        ctx.globalAlpha = egg ? Math.min(1, al + .3) : al;
+        ctx.drawImage(egg ? gold : spr, sx - size / 2, sy - size / 2, size, size);
       });
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over";
+
+      // drifting leaves
+      leaves.forEach(l => {
+        l.y += l.vy * dt / 16 / H * 1.2; l.rot += l.vr * dt / 16; l.ph += .02 * dt / 16;
+        if (l.y > 1.1) { l.y = -.1; l.x = R(); }
+        const x = l.x * W + Math.sin(l.ph) * 30 - mx * 20, y = l.y * H - my * 10, sz = 7 * l.s;
+        ctx.save(); ctx.translate(x, y); ctx.rotate(l.rot + Math.sin(l.ph) * .6);
+        ctx.globalAlpha = .75; ctx.fillStyle = "#355f43";
+        ctx.beginPath(); ctx.ellipse(0, 0, sz * 1.6, sz * .7, 0, 0, 6.29); ctx.fill();
+        ctx.strokeStyle = "#1e3a2a"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-sz * 1.5, 0); ctx.lineTo(sz * 1.5, 0); ctx.stroke();
+        ctx.restore(); ctx.globalAlpha = 1;
+      });
 
       // foreground ferns (fade out as you scroll), lean away from the cursor
       const fgA = 1 - Math.min(1, sc / (H * .8));
@@ -996,6 +1329,29 @@
     }
 
     if (reduce) return;
+    document.addEventListener("chance-egg", () => {
+      eggUntil = performance.now() + 7000;
+      for (let k = 0; k < 70; k++) flies.push(mkFly(W / 2 + (R() - .5) * 200, H / 2 + (R() - .5) * 120, true));
+      while (flies.length > baseFlies + 90) flies.splice(baseFlies, 1);
+      LAN.v += .06;
+    });
+    // tilt your phone to move the scene
+    if (matchMedia("(pointer: coarse)").matches && "DeviceOrientationEvent" in window) {
+      let base = null;
+      const onTilt = e => {
+        if (e.gamma == null) return;
+        if (base == null) base = e.beta || 0;
+        tmx = Math.max(-1, Math.min(1, e.gamma / 25));
+        tmy = Math.max(-1, Math.min(1, ((e.beta || 0) - base) / 25));
+      };
+      const start = () => addEventListener("deviceorientation", onTilt);
+      if (typeof DeviceOrientationEvent.requestPermission === "function") {
+        addEventListener("touchend", function ask() {
+          removeEventListener("touchend", ask);
+          DeviceOrientationEvent.requestPermission().then(r => { if (r === "granted") start(); }).catch(() => {});
+        });
+      } else start();
+    }
     let last = performance.now(), raf = 0, odd = false;
     function loop(t) {
       const dt = Math.min(50, t - last);

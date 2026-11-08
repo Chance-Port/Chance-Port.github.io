@@ -4,10 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Chance | 3D artist</title>
-<meta name="description" content="Chance is a 3D artist from Egypt making assets, environments and models in Blender, Substance Painter and Roblox Studio. Open for commissions.">
+<meta name="description" content="Chance is a 3D artist making hand-painted, stylized and realistic game-ready assets in Blender and Substance Painter: armor, clothing, characters, creatures, weapons, vehicles and environments. Commissions open.">
 <meta property="og:title" content="Chance | 3D artist">
-<meta property="og:description" content="3D assets, environments and models. Open for commissions.">
+<meta property="og:description" content="Hand-painted, stylized & realistic game-ready 3D. Commissions open.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://chance-port.github.io/">
+<meta property="og:image" content="https://chance-port.github.io/red-knight-1.jpg">
+<meta property="og:image:alt" content="Red knight armor by Chance">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Chance | 3D artist">
+<meta name="twitter:description" content="Hand-painted, stylized & realistic game-ready 3D. Commissions open.">
+<meta name="twitter:image" content="https://chance-port.github.io/red-knight-1.jpg">
+<link rel="canonical" href="https://chance-port.github.io/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"Chance","jobTitle":"3D artist","url":"https://chance-port.github.io/","sameAs":["https://x.com/Chancy2476"]}</script>
 <meta name="theme-color" content="#0B1517">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='3' width='26' height='26' fill='%23E8DCC4' stroke='%23B8935A' stroke-width='4'/><path d='M16 8l7 4v8l-7 4-7-4v-8z' fill='%237E2320' stroke='%231E1A16' stroke-width='1.5'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,7 +77,10 @@
     <div class="section-head">
       <h2 class="section-title" data-split data-label="work">Work</h2>
       <p class="note section-note" data-label="workNote">click a frame to flip it</p>
-      <div class="filters" role="toolbar" aria-label="Filter projects" hidden></div>
+      <div class="work-tools">
+        <div class="filters" role="toolbar" aria-label="Filter projects" hidden></div>
+        <div class="sorter" role="group" aria-label="Sort projects" data-sort hidden><span class="sorter-label">Sort</span></div>
+      </div>
     </div>
     <div class="wall" id="grid"></div>
   </section>
@@ -157,6 +169,16 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- zoomed picture -->
+<div class="zoom" id="zoom" role="dialog" aria-modal="true" aria-label="Zoomed picture" hidden>
+  <img alt="" draggable="false">
+  <button type="button" class="zoom-close" aria-label="Close zoom">&times;</button>
+  <button type="button" class="zoom-prev" aria-label="Previous picture">&lsaquo;</button>
+  <button type="button" class="zoom-next" aria-label="Next picture">&rsaquo;</button>
+  <p class="zoom-count" aria-live="polite"></p>
+  <p class="zoom-hint">scroll or pinch to zoom &middot; drag to look around &middot; double-click to reset</p>
 </div>
 
 <!-- full project view -->
