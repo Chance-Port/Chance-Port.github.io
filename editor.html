@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Site editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=Gochi+Hand&display=swap" rel="stylesheet">
+<style>
+  :root { --paper:#E9E2D4; --paper-2:#DCD1BE; --caramel:#B08D62; --olive:#6E6A55; --rust:#7C4A37; --ink:#2A1E18; --soft:#5B4739;
+    --f:"Bricolage Grotesque", Arial, sans-serif; --hand:"Gochi Hand", cursive; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--f); line-height: 1.5; }
+  [hidden] { display: none !important; }
+  header { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; justify-content: space-between; padding: .9rem clamp(1rem, 4vw, 3rem); background: var(--paper); border-bottom: 3px solid var(--ink); }
+  header h1 { margin: 0; font-size: 1.6rem; font-weight: 800; font-variation-settings: "wdth" 80; }
+  .bar { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+  main { max-width: 64rem; margin: 0 auto; padding: 1.5rem clamp(1rem, 4vw, 3rem) 6rem; }
+  .help { font-family: var(--hand); font-size: 1.2rem; color: var(--soft); margin: .4rem 0 0; }
+  section { margin-top: 2.5rem; }
+  h2 { font-size: 2.2rem; font-weight: 800; margin: 0 0 1rem; font-variation-settings: "wdth" 80; border-bottom: 3px solid var(--ink); }
+  label { display: block; font-weight: 600; font-size: .95rem; margin: .8rem 0 .25rem; }
+  input[type=text], input[type=url], textarea, select { width: 100%; font: inherit; color: inherit; background: #F3EEE4; border: 2px solid var(--ink); padding: .5rem .7rem; }
+  textarea { min-height: 5.5rem; resize: vertical; }
+  input:focus, textarea:focus, button:focus-visible { outline: 3px solid var(--caramel); outline-offset: 1px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.2rem; }
+  .box { background: var(--paper-2); border: 2.5px solid var(--ink); padding: 1rem 1.2rem 1.2rem; margin-bottom: 1.2rem; box-shadow: 6px 6px 0 var(--ink); }
+  .box-head { display: flex; justify-content: space-between; align-items: center; gap: .6rem; flex-wrap: wrap; }
+  .box-head strong { font-size: 1.25rem; }
+  .row { display: grid; grid-template-columns: 1fr 1.6fr auto; gap: .6rem; align-items: center; margin-bottom: .5rem; }
+  button { font: inherit; font-weight: 700; cursor: pointer; background: transparent; color: var(--ink); border: 2px solid var(--ink); padding: .4rem .9rem; }
+  button:hover { background: var(--paper-2); }
+  .primary { background: var(--ink); color: var(--paper); box-shadow: 4px 4px 0 var(--caramel); }
+  .primary:hover { background: #3A2C24; }
+  .small { padding: .2rem .6rem; font-size: .9rem; }
+  .danger { border-color: var(--rust); color: var(--rust); }
+  .danger:hover { background: var(--rust); color: var(--paper); }
+  .check { display: flex; align-items: center; gap: .5rem; margin-top: .9rem; font-weight: 600; }
+  .check input { width: 1.2rem; height: 1.2rem; accent-color: var(--ink); }
+  .thumb { width: 100%; max-width: 220px; aspect-ratio: 4/3; object-fit: cover; border: 2px solid var(--ink); background: var(--paper); margin-top: .5rem; display: block; }
+  .status { font-family: var(--hand); font-size: 1.2rem; color: var(--olive); }
+  .steps { background: var(--ink); color: var(--paper); padding: 1rem 1.3rem; }
+  .steps ol { margin: .3rem 0 0; padding-left: 1.3rem; }
+  .steps code { background: #3A2C24; padding: 0 .3rem; }
+  @media (max-width: 640px) { .two, .row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Site editor</h1>
+  <div class="bar">
+    <span class="status" id="status"></span>
+    <button type="button" id="preview">Preview site</button>
+    <button type="button" id="reset" class="danger">Discard changes</button>
+    <button type="button" id="download" class="primary">Download content.js</button>
+  </div>
+</header>
+<main>
+  <div class="steps">
+    <strong>How saving works</strong>
+    <ol>
+      <li>Change anything below. Your edits are kept in this browser while you work.</li>
+      <li>Click <b>Preview site</b> to check it.</li>
+      <li>Click <b>Download content.js</b>, then upload it to your GitHub repo (replace the old one).</li>
+      <li>Images and videos: upload them into the <code>images</code> folder on GitHub, then type the path here, like <code>images/house.jpg</code>.</li>
+    </ol>
+  </div>
+  <div id="app"></div>
+</main>
+
+<script src="content.js"></script>
+<script>
+(function () {
+  "use strict";
+  const KEY = "chance-editor-draft";
+  const original = JSON.parse(JSON.stringify(window.SITE || {}));
+  let S;
+  try { S = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { S = null; }
+  if (!S) S = JSON.parse(JSON.stringify(original));
+  S.profile = S.profile || {}; S.contact = S.contact || {};
+  ["timeline", "skills", "projects"].forEach(k => S[k] = S[k] || []);
+  ["bio", "facts", "process"].forEach(k => S.profile[k] = S.profile[k] || []);
+
+  const app = document.getElementById("app");
+  const status = document.getElementById("status");
+  let t;
+  function save(msg) {
+    try { localStorage.setItem(KEY, JSON.stringify(S)); status.textContent = msg || "Draft saved"; }
+    catch (e) { status.textContent = "Can't save drafts in this browser. Download before closing."; }
+    clearTimeout(t); t = setTimeout(() => status.textContent = "", 2000);
+  }
+
+  function h(tag, attrs, ...kids) {
+    const n = document.createElement(tag);
+    for (const k in attrs || {}) {
+      if (k === "text") n.textContent = attrs[k];
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), attrs[k]);
+      else n.setAttribute(k, attrs[k]);
+    }
+    kids.flat().forEach(c => c != null && n.append(c));
+    return n;
+  }
+  let uid = 0;
+  // a text field bound to obj[key]
+  function field(label, obj, key, opts = {}) {
+    const id = "f" + (++uid);
+    const tag = opts.area ? "textarea" : "input";
+    const inp = h(tag, { id, type: opts.type || "text", placeholder: opts.ph || "" });
+    const get = opts.get || (v => v == null ? "" : String(v));
+    const set = opts.set || (v => v);
+    inp.value = get(obj[key]);
+    inp.addEventListener("input", () => { obj[key] = set(inp.value); save(); if (opts.after) opts.after(inp.value); });
+    if (opts.list) inp.setAttribute("list", opts.list);
+    return h("div", {}, h("label", { for: id, text: label }), inp, opts.hint ? h("p", { class: "help", text: opts.hint }) : null);
+  }
+  const lines = { get: a => (a || []).join("\n"), set: v => v.split("\n").map(s => s.trim()).filter(Boolean) };
+  const paras = { get: a => (a || []).join("\n\n"), set: v => v.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean) };
+
+  // list of small rows (facts, process, timeline)
+  function rows(arr, keys, labels, addLabel, blank) {
+    const wrap = h("div");
+    const draw = () => {
+      wrap.textContent = "";
+      arr.forEach((item, i) => {
+        const r = h("div", { class: "row" });
+        keys.forEach((k, j) => {
+          const inp = h("input", { type: "text", "aria-label": labels[j], placeholder: labels[j] });
+          inp.value = item[k] || "";
+          inp.addEventListener("input", () => { item[k] = inp.value; save(); });
+          r.append(inp);
+        });
+        r.append(h("button", { type: "button", class: "small danger", text: "Remove", onclick: () => { arr.splice(i, 1); save("Removed"); draw(); } }));
+        wrap.append(r);
+      });
+      wrap.append(h("button", { type: "button", class: "small", text: addLabel, onclick: () => { arr.push(Object.assign({}, blank)); save(); draw(); } }));
+    };
+    draw();
+    return wrap;
+  }
+
+  function thumbFor(path) {
+    const img = h("img", { class: "thumb", alt: "" });
+    const upd = p => { img.hidden = !p || /\.(mp4|webm|mov)$/i.test(p); if (!img.hidden) img.src = p; };
+    img.addEventListener("error", () => { img.hidden = true; });
+    upd(path);
+    return { img, upd };
+  }
+
+  function render() {
+    app.textContent = "";
+    const P = S.profile, C = S.contact;
+
+    // profile
+    app.append(h("section", {},
+      h("h2", { text: "About you" }),
+      h("div", { class: "two" },
+        field("Name", P, "name"), field("Role", P, "role", { ph: "3D artist" }),
+        field("Age", P, "age"), field("Location", P, "location"),
+        field("Timezone label", P, "timezoneLabel", { ph: "EET, UTC+2" }),
+        field("Timezone for the live clock", P, "timeZone", { ph: "Africa/Cairo" })),
+      field("Short intro (top of the page)", P, "intro", { area: true }),
+      field("Bio", P, "bio", Object.assign({ area: true, hint: "Leave an empty line between paragraphs." }, paras)),
+      h("label", { text: "Quick facts" }),
+      rows(P.facts, ["label", "value"], ["Label", "Value"], "Add fact", { label: "", value: "" }),
+      h("label", { text: "How I work (steps)" }),
+      rows(P.process, ["title", "text"], ["Step name", "Short description"], "Add step", { title: "", text: "" }),
+      h("label", { text: "Timeline" }),
+      rows(S.timeline, ["when", "text"], ["When (e.g. 2023)", "What happened"], "Add timeline entry", { when: "", text: "" })
+    ));
+
+    // skills
+    const skillWrap = h("div");
+    const drawSkills = () => {
+      skillWrap.textContent = "";
+      S.skills.forEach((g, i) => {
+        skillWrap.append(h("div", { class: "box" },
+          h("div", { class: "box-head" }, h("strong", { text: g.group || "New group" }),
+            h("button", { type: "button", class: "small danger", text: "Delete group", onclick: () => { if (confirm("Delete this skill group?")) { S.skills.splice(i, 1); save("Deleted"); drawSkills(); } } })),
+          field("Group name", g, "group"),
+          field("Skills, one per line", g, "items", Object.assign({ area: true, hint: "Add a note after a | like: Animation | still learning" }, lines))));
+      });
+      skillWrap.append(h("button", { type: "button", text: "Add skill group", onclick: () => { S.skills.push({ group: "", items: [] }); save(); drawSkills(); } }));
+    };
+    drawSkills();
+    app.append(h("section", {}, h("h2", { text: "Skills" }), h("p", { class: "help", text: "The first group shows big at the top." }), skillWrap));
+
+    // contact
+    app.append(h("section", {},
+      h("h2", { text: "Contact" }),
+      h("div", { class: "two" },
+        field("Discord username", C, "discord"), field("Email (optional)", C, "email", { hint: "Leave empty to hide it." }),
+        field("X handle", C, "xHandle", { ph: "@Chancy2476" }), field("X profile link", C, "xUrl", { type: "url" }))));
+
+    // projects
+    const cats = [...new Set(S.projects.map(p => p.category).filter(Boolean))];
+    const dl = h("datalist", { id: "cats" }, cats.map(c => h("option", { value: c })));
+    const projWrap = h("div");
+    const drawProjects = () => {
+      projWrap.textContent = "";
+      S.projects.forEach((p, i) => {
+        p.gallery = p.gallery || [];
+        const th = thumbFor(p.image);
+        const title = h("strong", { text: p.title || "Untitled" });
+        const move = d => { const j = i + d; if (j < 0 || j >= S.projects.length) return; [S.projects[i], S.projects[j]] = [S.projects[j], S.projects[i]]; save("Moved"); drawProjects(); };
+        const feat = h("input", { type: "checkbox", id: "feat" + i });
+        feat.checked = !!p.featured;
+        feat.addEventListener("change", () => { p.featured = feat.checked; save(); });
+        projWrap.append(h("div", { class: "box" },
+          h("div", { class: "box-head" }, title,
+            h("div", { class: "bar" },
+              h("button", { type: "button", class: "small", text: "Move up", onclick: () => move(-1) }),
+              h("button", { type: "button", class: "small", text: "Move down", onclick: () => move(1) }),
+              h("button", { type: "button", class: "small danger", text: "Delete", onclick: () => { if (confirm("Delete " + (p.title || "this project") + "?")) { S.projects.splice(i, 1); save("Deleted"); drawProjects(); } } }))),
+          h("div", { class: "two" },
+            field("Title", p, "title", { after: v => title.textContent = v || "Untitled" }),
+            field("Category", p, "category", { list: "cats", hint: "Filters appear once you use 2+ categories." })),
+          field("Description", p, "description", { area: true, hint: "Leave an empty line between paragraphs." }),
+          h("div", { class: "two" },
+            h("div", {}, field("Main image", p, "image", { ph: "images/my-render.jpg", after: th.upd }), th.img),
+            h("div", {},
+              field("Extra images, one per line", p, "gallery", Object.assign({ area: true }, lines)),
+              field("Video (file or YouTube link)", p, "video", { ph: "images/turntable.mp4" }))),
+          field("Link", p, "link", { type: "url", ph: "https://x.com/..." }),
+          h("label", { class: "check", for: "feat" + i }, feat, "Featured (big panel, shown first)")));
+      });
+    };
+    drawProjects();
+    app.append(h("section", {},
+      h("div", { class: "box-head" }, h("h2", { text: "Projects" }),
+        h("button", { type: "button", class: "primary", text: "Add project", onclick: () => { S.projects.unshift({ title: "New project", category: "", description: "", image: "", gallery: [], video: "", link: "", featured: false }); save("Added"); drawProjects(); } })),
+      dl, projWrap));
+  }
+
+  function output() {
+    return "/* Content for the site. Made with editor.html. You can also edit this file by hand. */\n\nwindow.SITE = " + JSON.stringify(S, null, 2) + ";\n";
+  }
+  document.getElementById("download").addEventListener("click", () => {
+    const url = URL.createObjectURL(new Blob([output()], { type: "text/javascript" }));
+    const a = h("a", { href: url, download: "content.js" });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    status.textContent = "Downloaded. Now upload it to GitHub.";
+  });
+  document.getElementById("preview").addEventListener("click", () => {
+    try { localStorage.setItem("chance-preview", JSON.stringify(S)); window.open("index.html?preview=1", "_blank"); }
+    catch (e) { status.textContent = "Preview needs browser storage. Download instead."; }
+  });
+  document.getElementById("reset").addEventListener("click", () => {
+    if (!confirm("Throw away your changes and go back to the live content?")) return;
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    S = JSON.parse(JSON.stringify(original));
+    S.profile = S.profile || {}; S.contact = S.contact || {};
+    ["timeline", "skills", "projects"].forEach(k => S[k] = S[k] || []);
+    ["bio", "facts", "process"].forEach(k => S.profile[k] = S.profile[k] || []);
+    render(); status.textContent = "Back to the live content";
+  });
+  render();
+})();
+</script>
+</body>
+</html>
