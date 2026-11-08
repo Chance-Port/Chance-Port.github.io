@@ -536,3 +536,16 @@ main, .nav, .progress { position: relative; z-index: 2; }
 @media (max-width: 960px) { .tool-wall { justify-self: start; margin-top: 2.6rem; } }
 @media (max-width: 700px) { .tool, .tool:nth-child(1), .tool:nth-child(2), .tool:nth-child(3) { width: calc((100% - 3.2rem) / 3); } .tool-wall { gap: 1.6rem; } .tool-name { font-size: .78rem; } }
 .hero-intro, .hero-role { text-shadow: 0 2px 10px rgba(0, 0, 0, .7); }
+
+/* reference images in the full project view */
+.refs { margin-top: 1.4rem; padding-top: 1.4rem; border-top: 2px dashed rgba(184, 147, 90, .5); }
+.refs-title { margin: 0 0 1rem; font-family: var(--hand); font-weight: 400; font-size: 1.7rem; color: var(--gold-lt); }
+.refs-row { display: flex; flex-wrap: wrap; gap: 1.4rem; align-items: flex-start; }
+.ref { margin: 0; width: min(100%, 17rem); }
+.ref .art { aspect-ratio: auto; }
+.ref .art img { height: auto; max-height: 26rem; object-fit: contain; background: #111; }
+.ref-credit { margin-top: .5rem; font-size: .9rem; color: var(--muted); font-style: italic; }
+.viewer-media .refs > * { border: 0; }
+/* show the whole render on the wall, not a cropped part */
+.card .art { background: #161616; }
+.card .art img, .card .art video { object-fit: contain; }

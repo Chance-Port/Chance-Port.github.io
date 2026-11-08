@@ -218,13 +218,14 @@
         field("X handle", C, "xHandle", { ph: "@Chancy2476" }), field("X profile link", C, "xUrl", { type: "url" }))));
 
     // projects
-    const cats = [...new Set(S.projects.map(p => p.category).filter(Boolean))];
+    const cats = [...new Set(S.projects.flatMap(p => String(p.category || "").split(",").map(c => c.trim()).filter(Boolean)))];
     const dl = h("datalist", { id: "cats" }, cats.map(c => h("option", { value: c })));
     const projWrap = h("div");
     const drawProjects = () => {
       projWrap.textContent = "";
       S.projects.forEach((p, i) => {
         p.gallery = p.gallery || [];
+        p.references = p.references || [];
         const th = thumbFor(p.image);
         const title = h("strong", { text: p.title || "Untitled" });
         const move = d => { const j = i + d; if (j < 0 || j >= S.projects.length) return; [S.projects[i], S.projects[j]] = [S.projects[j], S.projects[i]]; save("Moved"); drawProjects(); };
@@ -239,15 +240,16 @@
               h("button", { type: "button", class: "small danger", text: "Delete", onclick: () => { if (confirm("Delete " + (p.title || "this project") + "?")) { S.projects.splice(i, 1); save("Deleted"); drawProjects(); } } }))),
           h("div", { class: "two" },
             field("Title", p, "title", { after: v => title.textContent = v || "Untitled" }),
-            field("Category", p, "category", { list: "cats", hint: "Filters appear once you use 2+ categories." })),
+            field("Category", p, "category", { list: "cats", hint: "More than one? Separate with commas: Environment art, 3D art" })),
           field("Description", p, "description", { area: true, hint: "Leave an empty line between paragraphs." }),
           h("div", { class: "two" },
             h("div", {}, field("Main picture or video", p, "image", { ph: "images/render.jpg or images/turntable.mp4", hint: "A picture, an .mp4/.webm video, or a YouTube link. Videos play silently on the wall.", after: th.upd }), th.img),
             h("div", {},
               field("More pictures or videos, one per line", p, "gallery", Object.assign({ area: true, hint: "Shown in the full project view." }, lines)),
               field("Extra video (optional)", p, "video", { ph: "YouTube link or images/clip.mp4" }))),
-          field("Link", p, "link", { type: "url", ph: "https://x.com/..." }),
-          h("label", { class: "check", for: "feat" + i }, feat, "Featured (big panel, shown first)")));
+          h("label", { text: "Reference images (optional, only shown on this project)" }),
+          rows(p.references, ["image", "credit"], ["Image path, like images/ref.jpg", "Credit, like Character, Game"], "Add reference", { image: "", credit: "" }),
+          h("label", { class: "check", for: "feat" + i }, feat, "Featured (big frame)")));
       });
     };
     drawProjects();

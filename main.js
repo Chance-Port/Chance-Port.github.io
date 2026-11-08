@@ -24,6 +24,9 @@
   const P = SITE.profile || {};
   const C = SITE.contact || {};
   const projects = (SITE.projects || []).filter(p => p && (p.title || p.image || p.link));
+  // a project can have several categories: "Environment art, 3D art"
+  const catsOf = p => String(p.category || "").split(",").map(c => c.trim()).filter(Boolean);
+  const catText = p => catsOf(p).join(" · ");
 
   function el(tag, attrs, ...kids) {
     const n = document.createElement(tag);
@@ -168,10 +171,10 @@
     const hang = el("div", { class: "hang", style: `--tilt:${tiltDeg}deg` }, tilt);
     whenHung(hang);
     const card = el("a", {
-      class: "card" + (p.featured ? " featured" : ""), href: "#project-" + (i + 1), "data-index": i, "data-cat": p.category || "",
+      class: "card" + (p.featured ? " featured" : ""), href: "#project-" + (i + 1), "data-index": i, "data-cat": catsOf(p).join("|"),
       "aria-label": (p.title || "Untitled") + ", flip for details",
       style: `--dy:${p.featured ? 0 : [0, 2.5, 1, 3, .5, 1.8][n % 6]}rem;--d:${(n % 3) * .14}s;--lt:${-tiltDeg}deg`
-    }, hang, el("div", { class: "label" }, el("span", { class: "label-title", text: p.title || "Untitled" }), p.category ? el("span", { class: "label-cat", text: p.category }) : null));
+    }, hang, el("div", { class: "label" }, el("span", { class: "label-title", text: p.title || "Untitled" }), catsOf(p).length ? el("span", { class: "label-cat", text: catText(p) }) : null));
     card.addEventListener("click", e => { e.preventDefault(); openFlip(i, card); });
     if (finePointer && !reduce) {
       const frame = $(".frame", tilt);
@@ -188,7 +191,7 @@
     grid.append(card);
   });
 
-  const cats = [...new Set(projects.map(p => p.category).filter(Boolean))];
+  const cats = [...new Set(projects.flatMap(catsOf))];
   const filterBar = $(".filters");
   if (cats.length > 1) {
     filterBar.hidden = false;
@@ -198,7 +201,7 @@
         $$("button", filterBar).forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
         let k = 0;
         $$(".card", grid).forEach(card => {
-          const show = c === "All" || card.dataset.cat === c;
+          const show = c === "All" || card.dataset.cat.split("|").includes(c);
           card.classList.toggle("hide", !show);
           if (show && !reduce) {
             const h = $(".hang", card);
@@ -218,13 +221,13 @@
   let flipAnim = null, flipIdx = -1, flipCard = null;
 
   function fillBack(p) {
-    $("[data-f-cat]", back).textContent = p.category || "";
+    $("[data-f-cat]", back).textContent = catText(p);
     $("[data-f-title]", back).textContent = p.title || "Untitled";
     const d = $("[data-f-desc]", back);
     d.textContent = "";
     const paras = String(p.description || "").split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
     if (paras.length) paras.forEach(t => d.append(el("p", { text: t })));
-    else d.append(el("p", { text: p.link ? "Full write-up coming soon. The post on X has the details for now." : "Full write-up coming soon." }));
+    else d.append(el("p", { text: "Full write-up coming soon." }));
     const link = $("[data-f-link]", back);
     link.hidden = !p.link;
     if (p.link) { link.href = p.link; link.textContent = /x\.com|twitter\.com/i.test(p.link) ? "View on X" : "View link"; }
@@ -304,13 +307,26 @@
       else add(image(src, label, n === 0));
     });
     if (!media.children.length) add(placeholder(), true);
-    $("[data-v-cat]", viewer).textContent = p.category || "";
+    // reference images (only for projects that have them)
+    const refs = (p.references || []).filter(r => r && r.image);
+    if (refs.length) {
+      const box = el("div", { class: "refs" }, el("h3", { class: "refs-title", text: (SITE.labels || {}).reference || "Reference" }));
+      const row = el("div", { class: "refs-row" });
+      refs.forEach((r, n) => {
+        const f = framed(image(r.image, "Reference " + (n + 1) + (r.credit ? ": " + r.credit : "")), "black");
+        $$(".wire, .nail", f).forEach(x => x.remove());
+        row.append(el("figure", { class: "ref" }, f, el("figcaption", { class: "ref-credit", text: "Reference" + (r.credit ? ": " + r.credit : "") })));
+      });
+      box.append(row);
+      media.append(box);
+    }
+    $("[data-v-cat]", viewer).textContent = catText(p);
     $("[data-v-title]", viewer).textContent = p.title || "Untitled";
     const desc = $("[data-v-desc]", viewer);
     desc.textContent = "";
     const paras = String(p.description || "").split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
     if (paras.length) paras.forEach(t => desc.append(el("p", { text: t })));
-    else if (p.link) desc.append(el("p", { text: "Full write-up coming soon. The post on X has the details for now." }));
+    else desc.append(el("p", { text: "Full write-up coming soon." }));
     const link = $("[data-v-link]", viewer);
     link.hidden = !p.link;
     if (p.link) { link.href = p.link; link.textContent = /x\.com|twitter\.com/i.test(p.link) ? "View the post on X" : "View project"; }
