@@ -8,24 +8,24 @@ window.SITE = {
   profile: {
     name: "Chance",
     role: "3D artist",
-    intro: "I make 3D assets, environments and models in Blender, from hard-surface props to stylized, hand-painted pieces.",
+    intro: "Armor, outfits, weapons and whole rooms, sculpted in Blender and painted by hand until they feel alive.",
     age: "16",
     location: "Egypt",
     timezoneLabel: "EET, UTC+2",
     timeZone: "Africa/Cairo",
     bio: [
-      "I'm Chance, a 16-year-old 3D artist from Egypt. I like making things that are interesting to look at: assets, environments and models with a clear look of their own.",
-      "I've spent three years on building and environment art and two and a half years modeling in Blender. I'm adaptable and curious about other cultures, which helps whenever a project calls for a style I haven't tried yet.",
-      "What matters most to me is that you're happy with the result. I take the time to understand what you want, keep you updated while I work, and deliver what we agreed on."
+      "Hey, I'm Chance. I'm 16, from Egypt, and I spend most of my time turning ideas into 3D: armor sets, wild weapons, little worlds you could walk into.",
+      "I've been building environments for about 3 years and modeling in Blender for 2.5. I love painted looks with heavy ink lines, but I'll go realistic when a piece calls for it.",
+      "Got a character, an outfit or a place stuck in your head? I'll help you get it out, and I'll keep you in the loop the whole way so it turns out how you pictured it."
     ],
     facts: [
       { label: "Building & environment art", value: "3 years" },
       { label: "Modeling in Blender", value: "2.5 years" }
     ],
     process: [
-      { title: "Understand", text: "We talk through what you need, the style and how it will be used." },
-      { title: "Keep you posted", text: "You see progress as I go, so changes happen early, not at the end." },
-      { title: "Deliver", text: "You get the finished work, matching what we agreed on." }
+      { title: "Tell me your idea", text: "Send me what you're picturing: sketches, references, vibes, anything." },
+      { title: "I keep you posted", text: "You'll see it come together as I go, so we can tweak stuff early." },
+      { title: "You get your piece", text: "Finished, polished and how you pictured it." }
     ]
   },
 
@@ -47,16 +47,16 @@ window.SITE = {
     soFar: "So far",
     skills: "Skills",
     contact: "Contact",
-    contactTitle: "Have a model or scene in mind?",
-    contactText: "I'm open to commissions and collaborations. Send me a message on Discord or X with what you need and we'll work it out from there.",
-    heroButton1: "See my work",
-    heroButton2: "Commission me"
+    contactTitle: "Got an idea? Let's make it.",
+    contactText: "Hit me up on Discord or X with what you've got in mind and we'll figure it out together.",
+    heroButton1: "Check out my work",
+    heroButton2: "Contact me"
   },
 
   timeline: [
     { when: "2023", text: "Started building and environment art" },
     { when: "2024", text: "Started modeling in Blender" },
-    { when: "Now", text: "Open for commissions and collaborations" }
+    { when: "Now", text: "Open for requests and collabs" }
   ],
 
   skills: [
@@ -76,7 +76,7 @@ window.SITE = {
   /* CATEGORIES: main groups and their smaller groups (shown as filter buttons) */
   categories: [
     { name: "3D art", description: "", subs: [
-      { name: "Wearables", description: "Clothes, armor and UGC accessories" },
+      { name: "Character Cosmetics", description: "Clothes, armor and UGC accessories" },
       { name: "Characters", description: "" },
       { name: "Creatures", description: "" },
       { name: "Weapons", description: "" },
@@ -91,29 +91,29 @@ window.SITE = {
 
   /* PROJECTS (shown in this order inside each style)
      style:      one of the styles above
-     category:   one or more, separated by commas: "Wearables, Weapons" or "Environment art, Props"
+     category:   one or more, separated by commas: "Character Cosmetics, Weapons" or "Environment art, Props"
      image:      main picture OR video file name, or a YouTube link
      gallery:    more pictures/videos for the full view
      references: optional, shown under "Reference" in the full view
      featured:   true makes it a big frame */
   projects: [
-    { title: "Project 03", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "purple-outfit-1.jpg", gallery: ["purple-outfit-2.jpg", "purple-outfit-3.jpg"], video: "", featured: false, references: [{ image: "purple-outfit-ref-1.jpg", credit: "Diavolo, JoJo's Bizarre Adventure" }] },
-    { title: "Project 16", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "hood-mask-1.jpg", gallery: [], video: "", featured: false },
-    { title: "Project 11", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "hokage-robe-1.jpg", gallery: [], video: "", featured: false },
-    { title: "Project 25", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "red-knight-1.jpg", gallery: [], video: "", featured: false, references: [{ image: "red-knight-ref-1.jpg", credit: "Igris, Solo Leveling" }] },
-    { title: "Project 20", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "straw-hat-cape-1.jpg", gallery: [], video: "", featured: false },
-    { title: "Project 18", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "bloody-headband-1.jpg", gallery: [], video: "", featured: false },
-    { title: "Project 15", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "tactical-mask-1.jpg", gallery: [], video: "", featured: false },
-    { title: "Project 12", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "gear-cloak-1.jpg", gallery: [], video: "", featured: false },
-    { title: "Project 05", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "flame-uniform-1.jpg", gallery: ["flame-uniform-2.jpg"], video: "", featured: false, references: [{ image: "flame-uniform-ref-1.jpg", credit: "Rengoku, Demon Slayer" }, { image: "flame-uniform-ref-2.jpg", credit: "Post-apocalypse AU concept, fan art" }] },
-    { title: "Project 08", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "hooded-cape-1.jpg", gallery: [], video: "", featured: false },
-    { title: "Project 19", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "red-coat-1.jpg", gallery: [], video: "", featured: false },
-    { title: "Project 28", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "layered-robe-1.jpg", gallery: [], video: "", featured: false },
-    { title: "Project 17", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "skull-knight-1.jpg", gallery: [], video: "", featured: false },
-    { title: "Project 26", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "purple-wrap-1.jpg", gallery: [], video: "", featured: false },
-    { title: "Project 01", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "gold-armor-1.jpg", gallery: ["gold-armor-2.jpg", "gold-armor-3.jpg"], video: "", featured: false, references: [{ image: "gold-armor-ref-1.jpg", credit: "Asura, Asura's Wrath" }] },
-    { title: "Project 09", style: "Stylized-Cel Shaded", category: "Wearables, Weapons", description: "", image: "viking-set-1.jpg", gallery: [], video: "", featured: false },
-    { title: "Project 23", style: "Stylized-Cel Shaded", category: "Wearables, Weapons", description: "", image: "white-jacket-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 03", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "purple-outfit-1.jpg", gallery: ["purple-outfit-2.jpg", "purple-outfit-3.jpg"], video: "", featured: false, references: [{ image: "purple-outfit-ref-1.jpg", credit: "Diavolo, JoJo's Bizarre Adventure" }] },
+    { title: "Project 16", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "hood-mask-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 11", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "hokage-robe-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 25", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "red-knight-1.jpg", gallery: [], video: "", featured: false, references: [{ image: "red-knight-ref-1.jpg", credit: "Igris, Solo Leveling" }] },
+    { title: "Project 20", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "straw-hat-cape-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 18", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "bloody-headband-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 15", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "tactical-mask-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 12", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "gear-cloak-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 05", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "flame-uniform-1.jpg", gallery: ["flame-uniform-2.jpg"], video: "", featured: false, references: [{ image: "flame-uniform-ref-1.jpg", credit: "Rengoku, Demon Slayer" }, { image: "flame-uniform-ref-2.jpg", credit: "Post-apocalypse AU concept, fan art" }] },
+    { title: "Project 08", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "hooded-cape-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 19", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "red-coat-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 28", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "layered-robe-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 17", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "skull-knight-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 26", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "purple-wrap-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 01", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "gold-armor-1.jpg", gallery: ["gold-armor-2.jpg", "gold-armor-3.jpg"], video: "", featured: false, references: [{ image: "gold-armor-ref-1.jpg", credit: "Asura, Asura's Wrath" }] },
+    { title: "Project 09", style: "Stylized-Cel Shaded", category: "Character Cosmetics, Weapons", description: "", image: "viking-set-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 23", style: "Stylized-Cel Shaded", category: "Character Cosmetics, Weapons", description: "", image: "white-jacket-1.jpg", gallery: [], video: "", featured: false },
     { title: "Project 10", style: "Stylized-Cel Shaded", category: "Characters", description: "", image: "dante-1.jpg", gallery: [], video: "", featured: false },
     { title: "Project 14", style: "Stylized-Cel Shaded", category: "Creatures", description: "", image: "dragon-1.jpg", gallery: [], video: "", featured: false },
     { title: "Project 07", style: "Stylized-Cel Shaded", category: "Weapons", description: "", image: "blaster-1.jpg", gallery: [], video: "", featured: false },
@@ -124,6 +124,6 @@ window.SITE = {
     { title: "Project 04", style: "Stylized-Cel Shaded", category: "Environment art, Props", description: "", image: "train-interior-1.jpg", gallery: ["train-interior-2.jpg", "train-interior-3.jpg"], video: "", featured: false },
     { title: "Project 27", style: "Stylized-Cel Shaded", category: "Environment art, 3D art", description: "", image: "storage-room-1.jpg", gallery: ["storage-room-2.jpg"], video: "", featured: false },
     { title: "Project 02", style: "Stylized-Cel Shaded", category: "Environment art", description: "", image: "night-arena-1.jpg", gallery: [], video: "", featured: false, references: [{ image: "night-arena-ref-1.jpg", credit: "" }] },
-    { title: "Project 06", style: "Realistic", category: "Wearables", description: "", image: "bronze-armor-1.jpg", gallery: [], video: "", featured: false }
+    { title: "Project 06", style: "Realistic", category: "Character Cosmetics", description: "", image: "bronze-armor-1.jpg", gallery: [], video: "", featured: false }
   ]
 };

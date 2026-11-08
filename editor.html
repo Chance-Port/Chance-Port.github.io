@@ -230,7 +230,7 @@
             h("button", { type: "button", class: "small danger", text: "Delete", onclick: () => { if (confirm("Delete this category?")) { S.categories.splice(i, 1); save("Deleted"); drawCats(); } } })),
           h("div", { class: "two" }, field("Main category", c, "name"), field("Description (optional)", c, "description")),
           h("label", { text: "Smaller groups inside it" }),
-          rows(c.subs, ["name", "description"], ["Name, like Wearables", "Description (optional)"], "Add group", { name: "", description: "" })));
+          rows(c.subs, ["name", "description"], ["Name, like Weapons", "Description (optional)"], "Add group", { name: "", description: "" })));
       });
       catWrap.append(h("button", { type: "button", text: "Add main category", onclick: () => { S.categories.push({ name: "", description: "", subs: [] }); save(); drawCats(); } }));
     };
@@ -238,7 +238,7 @@
     app.append(h("section", {},
       h("h2", { text: "Categories & styles" }),
       field("Styles, one per line (the wall is grouped in this order)", S, "styles", Object.assign({ area: true }, lines)),
-      h("p", { class: "help", text: "Categories become the filter buttons. A project uses the group names, like Wearables or Environment art." }),
+      h("p", { class: "help", text: "Categories become the filter buttons. A project uses the group names, like Weapons or Environment art." }),
       catWrap));
 
     // projects
@@ -266,7 +266,7 @@
           h("div", { class: "two" },
             field("Title", p, "title", { after: v => title.textContent = v || "Untitled" }),
             field("Style", p, "style", { list: "styles", hint: "Like Stylized-Cel Shaded or Realistic" })),
-          field("Category", p, "category", { list: "cats", hint: "Use group names. More than one? Separate with commas: Wearables, Weapons" }),
+          field("Category", p, "category", { list: "cats", hint: "Use group names. More than one? Separate with commas: Character Cosmetics, Weapons" }),
           field("Description", p, "description", { area: true, hint: "Leave an empty line between paragraphs." }),
           h("div", { class: "two" },
             h("div", {}, field("Main picture or video", p, "image", { ph: "render.jpg or turntable.mp4", hint: "A picture, an .mp4/.webm video, or a YouTube link. Videos play silently on the wall.", after: th.upd }), th.img),
@@ -281,7 +281,7 @@
     drawProjects();
     app.append(h("section", {},
       h("div", { class: "box-head" }, h("h2", { text: "Projects" }),
-        h("button", { type: "button", class: "primary", text: "Add project", onclick: () => { S.projects.unshift({ title: "New project", style: (S.styles || [])[0] || "", category: "Wearables", description: "", image: "", gallery: [], video: "", link: "", featured: false }); save("Added"); drawProjects(); } })),
+        h("button", { type: "button", class: "primary", text: "Add project", onclick: () => { S.projects.unshift({ title: "New project", style: (S.styles || [])[0] || "", category: "Character Cosmetics", description: "", image: "", gallery: [], video: "", link: "", featured: false }); save("Added"); drawProjects(); } })),
       h("p", { class: "help", text: "Video tip: keep video files under 25 MB (GitHub's upload limit). Bigger ones: put them on YouTube and paste the link." }),
       dl, projWrap));
   }
