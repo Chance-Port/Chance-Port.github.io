@@ -27,6 +27,9 @@
   // a project can have several categories: "Environment art, 3D art"
   const catsOf = p => String(p.category || "").split(",").map(c => c.trim()).filter(Boolean);
   const catText = p => catsOf(p).join(" · ");
+  // no "Project 01" style numbers: frames show the category until a real title is written
+  const realTitle = p => (p.title && !/^project\s*\d+$/i.test(p.title.trim())) ? p.title.trim() : "";
+  const titleOf = p => realTitle(p) || catsOf(p)[0] || "Untitled";
 
   function el(tag, attrs, ...kids) {
     const n = document.createElement(tag);
@@ -124,7 +127,7 @@
   const mediaList = p => [p.image, ...(p.gallery || []), p.video].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i);
   function cover(p) {
     const first = mediaList(p)[0];
-    return first ? thumbFor(first, p.title) : placeholder();
+    return first ? thumbFor(first, titleOf(p)) : placeholder();
   }
   const FRAMES = ["", "black", "", "wood", "", "black"];
   const TILTS = [-1.2, .9, -.5, 1.3, -.9, .6];
@@ -168,7 +171,10 @@
   const styleOf = p => p.style || STYLES[0] || "";
   projects.forEach(p => { const st = styleOf(p); if (st && !STYLES.includes(st)) STYLES.push(st); });
   const all = projects.map((p, i) => ({ p, i }));
-  const groups = STYLES.length ? STYLES.map(st => ({ st, items: all.filter(o => styleOf(o.p) === st) })) : [{ st: "", items: all }];
+  const picks = all.filter(o => o.p.featured);
+  const rest = all.filter(o => !o.p.featured);
+  const groups = [{ st: (SITE.labels || {}).topPicks || "Top picks", items: picks, top: true }].concat(
+    STYLES.length ? STYLES.map(st => ({ st, items: rest.filter(o => styleOf(o.p) === st) })) : [{ st: "", items: rest }]);
   if (!projects.length) grid.append(el("p", { class: "grid-empty", text: "New work is on the way." }));
   const CATS = SITE.categories || [];
   const subOwner = {};
@@ -182,9 +188,9 @@
     whenHung(hang);
     const card = el("a", {
       class: "card" + (p.featured ? " featured" : ""), href: "#project-" + (i + 1), "data-index": i, "data-cat": catsOf(p).join("|"), "data-main": mainsOf(p).join("|"),
-      "aria-label": (p.title || "Untitled") + ", flip for details",
+      "aria-label": titleOf(p) + ", flip for details",
       style: `--dy:${p.featured ? 0 : [0, 2.5, 1, 3, .5, 1.8][n % 6]}rem;--d:${(n % 3) * .14}s;--lt:${-tiltDeg}deg`
-    }, hang, el("div", { class: "label" }, el("span", { class: "label-title", text: p.title || "Untitled" }), catsOf(p).length ? el("span", { class: "label-cat", text: catText(p) }) : null));
+    }, hang, el("div", { class: "label" }, el("span", { class: "label-title", text: realTitle(p) || catText(p) || "Untitled" }), realTitle(p) && catsOf(p).length ? el("span", { class: "label-cat", text: catText(p) }) : null));
     card.addEventListener("click", e => { e.preventDefault(); openFlip(i, card); });
     if (finePointer && !reduce) {
       const frame = $(".frame", tilt);
@@ -203,7 +209,7 @@
   }
   groups.forEach(g => {
     if (!g.items.length) return;
-    if (g.st && groups.filter(x => x.items.length).length > 1) grid.append(el("div", { class: "style-head", "data-style": g.st }, el("span", { text: g.st })));
+    if (g.st && groups.filter(x => x.items.length).length > 1) grid.append(el("div", { class: "style-head" + (g.top ? " top-head" : ""), "data-style": g.st }, el("span", { text: (g.top ? "\u2605 " : "") + g.st })));
     g.items.forEach(({ p, i }) => makeCard(p, i));
   });
 
@@ -265,14 +271,74 @@
     });
   }
 
+  /* ---------- likes + views (free Abacus counting service) ---------- */
+  const COUNTER = "https://abacus.jasoncameron.dev", NS = "chance-port-gh";
+  const pid = p => String(p.id || (p.image || "").replace(/^.*\//, "").replace(/\.[a-z0-9]+$/i, "") || titleOf(p)).toLowerCase().replace(/[^a-z0-9_-]+/g, "-").slice(0, 40);
+  async function counter(kind, key) {
+    const ctl = "AbortController" in window ? new AbortController() : null;
+    const t = setTimeout(() => ctl && ctl.abort(), 6000);
+    try {
+      const r = await fetch(`${COUNTER}/${kind}/${NS}/${key}`, ctl ? { signal: ctl.signal } : {});
+      if (r.status === 404) return 0;
+      if (!r.ok) return null;
+      const j = await r.json();
+      return typeof j.value === "number" ? j.value : null;
+    } catch (e) { return null; } finally { clearTimeout(t); }
+  }
+  const fmtN = n => n >= 10000 ? Math.round(n / 1000) + "k" : n >= 1000 ? (n / 1000).toFixed(1) + "k" : String(n);
+  const store = (area, k, v) => { try { const S = window[area]; if (v === undefined) return S.getItem(k); S.setItem(k, v); } catch (e) { return null; } };
+  const countCache = {};
+  function statsFor(p, box) {
+    if (!box) return;
+    const id = pid(p);
+    box.textContent = "";
+    box.hidden = false;
+    const views = el("span", { class: "stat-views", title: "Views" }, el("span", { "aria-hidden": "true", text: "\uD83D\uDC41 " }), el("b", { text: "\u2026" }), " views");
+    const isLiked = store("localStorage", "chance-liked-" + id) === "1";
+    const like = el("button", { type: "button", class: "like-btn" + (isLiked ? " liked" : ""), "aria-pressed": isLiked ? "true" : "false", "aria-label": "Like this project" },
+      el("span", { class: "heart", "aria-hidden": "true", text: isLiked ? "\u2665" : "\u2661" }), el("b", { text: "\u2026" }));
+    box.append(views, like);
+    const cache = countCache[id] || (countCache[id] = {});
+    // a view is counted once per visit per project
+    const firstView = !store("sessionStorage", "chance-seen-" + id);
+    if (firstView) store("sessionStorage", "chance-seen-" + id, "1");
+    (firstView ? counter("hit", "v-" + id) : (cache.v != null ? Promise.resolve(cache.v) : counter("get", "v-" + id))).then(v => {
+      if (v == null) { views.hidden = true; return; }
+      cache.v = v; $("b", views).textContent = fmtN(v);
+    });
+    (cache.l != null ? Promise.resolve(cache.l) : counter("get", "l-" + id)).then(v => {
+      if (v == null) { like.hidden = true; return; }
+      cache.l = v; $("b", like).textContent = fmtN(v);
+    });
+    like.addEventListener("click", e => {
+      if (like.classList.contains("liked")) return;
+      like.classList.add("liked", "pop-like"); like.setAttribute("aria-pressed", "true");
+      $(".heart", like).textContent = "\u2665";
+      cache.l = (cache.l || 0) + 1; $("b", like).textContent = fmtN(cache.l);
+      store("localStorage", "chance-liked-" + id, "1");
+      const r = like.getBoundingClientRect();
+      sparks(e.clientX || r.left + r.width / 2, e.clientY || r.top);
+      counter("hit", "l-" + id).then(v => { if (v != null) { cache.l = v; $("b", like).textContent = fmtN(v); } });
+    });
+  }
+  // total site visits (once per visit) in the footer
+  (function () {
+    const box = $("[data-visits]");
+    if (!box) return;
+    const first = !store("sessionStorage", "chance-visit");
+    if (first) store("sessionStorage", "chance-visit", "1");
+    counter(first ? "hit" : "get", "site-visits").then(v => { if (v != null) { box.textContent = "\uD83D\uDC41 " + fmtN(v) + " visits"; box.hidden = false; } });
+  })();
+
   /* ---------- flip a frame to read its back ---------- */
   const flip = $("#flip"), flipper = $(".flipper", flip);
   const front = $(".face-front", flip), back = $(".face-back", flip);
   let flipAnim = null, flipIdx = -1, flipCard = null;
 
   function fillBack(p) {
-    $("[data-f-cat]", back).textContent = catText(p);
-    $("[data-f-title]", back).textContent = p.title || "Untitled";
+    $("[data-f-cat]", back).textContent = realTitle(p) ? catText(p) : (catsOf(p).length > 1 ? catText(p) : styleOf(p));
+    $("[data-f-title]", back).textContent = titleOf(p);
+    statsFor(p, $("[data-stats=back]", back));
     const d = $("[data-f-desc]", back);
     d.textContent = "";
     const paras = String(p.description || "").split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
@@ -351,7 +417,7 @@
     media.textContent = "";
     const add = (node, empty) => { const f = framed(node, ""); if (empty) $(".art", f).classList.add("empty"); $$(".wire, .nail", f).forEach(n => n.remove()); media.append(f); };
     mediaList(p).forEach((src, n) => {
-      const k = kind(src), label = (p.title || "Project") + " " + (k === "image" ? "image " : "video ") + (n + 1);
+      const k = kind(src), label = titleOf(p) + " " + (k === "image" ? "image " : "video ") + (n + 1);
       if (k === "yt") add(el("iframe", { src: "https://www.youtube-nocookie.com/embed/" + ytId(src), title: label, allow: "autoplay; encrypted-media; picture-in-picture", allowfullscreen: "", loading: "lazy" }));
       else if (k === "video") { const v = el("video", { src, controls: "", playsinline: "", preload: "metadata", "aria-label": label }); v.addEventListener("error", () => v.replaceWith(placeholder("Video not found"))); add(v); }
       else add(image(src, label, n === 0));
@@ -370,8 +436,9 @@
       box.append(row);
       media.append(box);
     }
-    $("[data-v-cat]", viewer).textContent = catText(p);
-    $("[data-v-title]", viewer).textContent = p.title || "Untitled";
+    $("[data-v-cat]", viewer).textContent = realTitle(p) ? catText(p) : (catsOf(p).length > 1 ? catText(p) : styleOf(p));
+    $("[data-v-title]", viewer).textContent = titleOf(p);
+    statsFor(p, $("[data-stats=viewer]", viewer));
     const desc = $("[data-v-desc]", viewer);
     desc.textContent = "";
     const paras = String(p.description || "").split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);

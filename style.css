@@ -578,3 +578,19 @@ main, .nav, .progress { position: relative; z-index: 2; }
 .commission-list dd { margin: 0; font-weight: 600; }
 @media (max-width: 560px) { .commission-list div { grid-template-columns: 1fr; gap: .2rem; } }
 @media (prefers-reduced-motion: reduce) { .badge { animation: none; } }
+
+/* top picks + likes/views */
+.top-head { color: var(--parch); }
+.top-head span { text-shadow: 0 0 18px rgba(242, 194, 123, .45); }
+.stats-row { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.2rem; margin: 1rem 0 0; font-size: .98rem; }
+.stats-row b { font-weight: 800; }
+.like-btn { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .85rem; border-radius: 999px; border: 2px solid currentColor; background: transparent; color: inherit; font-weight: 600; transition: transform .3s var(--spring), background-color .2s, color .2s; }
+.like-btn:hover { transform: scale(1.07); }
+.like-btn .heart { font-size: 1.15rem; line-height: 1; color: var(--red-lt); }
+.like-btn.liked { background: var(--red); border-color: var(--red); color: var(--parch); cursor: default; }
+.like-btn.liked .heart { color: var(--parch); }
+.pop-like .heart { animation: heartPop .6s var(--spring); }
+@keyframes heartPop { 0% { transform: scale(1); } 40% { transform: scale(1.7); } 100% { transform: scale(1); } }
+.face-back .stats-row { color: var(--ink); }
+.viewer .stats-row { margin-bottom: 1rem; }
+.visits { opacity: .85; }
