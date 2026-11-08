@@ -81,7 +81,7 @@
   if (!S) S = JSON.parse(JSON.stringify(original));
   S.profile = S.profile || {}; S.contact = S.contact || {};
   ["timeline", "skills", "projects", "tools"].forEach(k => S[k] = S[k] || []);
-  ["bio", "facts", "process"].forEach(k => S.profile[k] = S.profile[k] || []);
+  ["bio", "facts", "process", "services"].forEach(k => S.profile[k] = S.profile[k] || []);
 
   const app = document.getElementById("app");
   const status = document.getElementById("status");
@@ -173,16 +173,25 @@
       field("Bio", P, "bio", Object.assign({ area: true, hint: "Leave an empty line between paragraphs." }, paras)),
       h("label", { text: "Quick facts" }),
       rows(P.facts, ["label", "value"], ["Label", "Value"], "Add fact", { label: "", value: "" }),
-      h("label", { text: "How I work (steps)" }),
-      rows(P.process, ["title", "text"], ["Step name", "Short description"], "Add step", { title: "", text: "" }),
+      field("What I do, one per line", P, "services", Object.assign({ area: true }, lines)),
+      field("Line under \"What I do\"", P, "servicesNote", { area: true }),
       h("label", { text: "Timeline" }),
       rows(S.timeline, ["when", "text"], ["When (e.g. 2023)", "What happened"], "Add timeline entry", { when: "", text: "" })
     ));
 
+    // commission info
+    S.commission = S.commission || { title: "Commission info", items: [] };
+    S.commission.items = S.commission.items || [];
+    app.append(h("section", {},
+      h("h2", { text: "Commission info" }),
+      h("p", { class: "help", text: "The box above Contact. Remove all rows to hide it." }),
+      field("Box title", S.commission, "title"),
+      rows(S.commission.items, ["label", "text"], ["Label, like Payment", "Text"], "Add row", { label: "", text: "" })));
+
     // titles + buttons
     S.labels = S.labels || {};
     const LB = S.labels;
-    const labelNames = [["work", "Work section title"], ["workNote", "Note next to Work"], ["about", "About section title"], ["howIWork", "\"How I work\" title"], ["soFar", "Timeline title"], ["skills", "Skills section title"], ["contact", "Contact menu link"], ["heroButton1", "First button"], ["heroButton2", "Second button"], ["contactTitle", "Contact big title"], ["contactText", "Contact text"]];
+    const labelNames = [["work", "Work section title"], ["workNote", "Note next to Work"], ["about", "About section title"], ["howIWork", "\"What I do\" title"], ["soFar", "Timeline title"], ["skills", "Skills section title"], ["contact", "Contact menu link"], ["badge", "Badge next to \"3D artist\""], ["heroButton1", "First button"], ["heroButton2", "Second button"], ["contactTitle", "Contact big title"], ["contactText", "Contact text"]];
     app.append(h("section", {},
       h("h2", { text: "Titles & buttons" }),
       h("p", { class: "help", text: "Change the words used around the site. Menu links use the section titles." }),
@@ -306,7 +315,7 @@
     S = JSON.parse(JSON.stringify(original));
     S.profile = S.profile || {}; S.contact = S.contact || {};
     ["timeline", "skills", "projects", "tools"].forEach(k => S[k] = S[k] || []);
-    ["bio", "facts", "process"].forEach(k => S.profile[k] = S.profile[k] || []);
+    ["bio", "facts", "process", "services"].forEach(k => S.profile[k] = S.profile[k] || []);
     render(); status.textContent = "Back to the live content";
   });
   render();

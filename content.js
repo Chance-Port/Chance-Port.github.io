@@ -8,25 +8,27 @@ window.SITE = {
   profile: {
     name: "Chance",
     role: "3D artist",
-    intro: "Armor, fits, weapons & full rooms. Modeled in Blender, hand-painted till they look alive.",
+    intro: "Hand-painted, stylized, comic-style or realistic, wtv the work needs. Game-ready assets made in Blender & Substance Painter.",
     age: "16",
     location: "Egypt",
     timezoneLabel: "EET, UTC+2",
     timeZone: "Africa/Cairo",
     bio: [
-      "16 y/o 3D artist. Mostly armor sets, wild weapons & little worlds u could walk into.",
-      "3 yrs doing environments, 2.5 yrs modeling in Blender. Love painted stuff w/ heavy ink lines, but I go realistic when a piece needs it.",
-      "Got a character, fit or place stuck in ur head? I'll get it out & keep u updated the whole way so it ends up how u pictured it."
+      "16 y/o 3D artist, 2.5 yrs in Blender & Substance Painter. Stylized, realistic, clothing, armor, characters, creatures, environments, I'm into all of it. Everything's game-ready.",
+      "Been building for 3 yrs, took a break & just got back into it, so u'll see environments here too.",
+      "Can match diff styles if u need, but what u see here is the quality u'll get."
     ],
     facts: [
-      { label: "Env art", value: "3 yrs" },
-      { label: "Blender", value: "2.5 yrs" }
+      { label: "Blender", value: "2.5 yrs" },
+      { label: "Building", value: "3 yrs" }
     ],
-    process: [
-      { title: "Send ur idea", text: "Sketches, refs, vibes, whatever u got." },
-      { title: "I keep u posted", text: "U see it come together so we can tweak stuff early." },
-      { title: "U get ur piece", text: "Done, polished & how u pictured it." }
-    ]
+    /* "What I do" list + the line under it */
+    services: [
+      "Props, weapons, clothing & accessories",
+      "Environments, maps & scenes",
+      "Creatures, sculpting & retopology"
+    ],
+    servicesNote: "Clean, optimized models that actually work in-game. Fair turnaround & clear communication."
   },
 
   /* Software shown as framed pictures at the top.
@@ -43,21 +45,31 @@ window.SITE = {
     work: "Work",
     workNote: "click a frame to flip it",
     about: "About",
-    howIWork: "How I work",
+    howIWork: "What I do",
+    badge: "Commissions open",
     soFar: "So far",
     skills: "Skills",
     contact: "Contact",
     contactTitle: "Got an idea? Let's make it.",
-    contactText: "Hit me up on Discord or X w/ what u got in mind & we'll figure it out.",
+    contactText: "Commissions open. DM me on Discord or X to talk about ur project.",
     heroButton1: "Check out my work",
     heroButton2: "Contact me"
   },
 
   timeline: [
-    { when: "2023", text: "Started env art" },
-    { when: "2024", text: "Started modeling in Blender" },
-    { when: "Now", text: "Open for requests & collabs" }
+    { when: "2023", text: "Started building" },
+    { when: "2024", text: "Started modeling in Blender & Substance" },
+    { when: "Now", text: "Back to building & taking commissions" }
   ],
+
+  /* Commission info box (above Contact) */
+  commission: {
+    title: "Commission info",
+    items: [
+      { label: "Payment", text: "PayPal (USD) or Robux" },
+      { label: "Terms", text: "50% upfront. Files sent after full payment. No refunds." }
+    ]
+  },
 
   skills: [
     { group: "Software", items: ["Blender", "Substance Painter", "Roblox Studio"] },

@@ -559,3 +559,22 @@ main, .nav, .progress { position: relative; z-index: 2; }
 .filter-row.sub button { font-size: .92rem; padding: .25rem .8rem; border-color: rgba(184, 147, 90, .7); }
 .filter-note { margin: 0; font-family: var(--hand); font-size: 1.2rem; color: var(--gold-lt); text-align: right; }
 @media (max-width: 700px) { .filters { align-items: flex-start; } .filter-row { justify-content: flex-start; } .filter-note { text-align: left; } }
+
+/* commissions badge, "What I do" list, commission info box */
+.badge { display: inline-block; vertical-align: middle; margin-left: .5rem; padding: .2rem .7rem; font-size: .5em; font-weight: 700; letter-spacing: .02em; color: var(--ink); background: var(--gold-lt); border-radius: 999px; box-shadow: 0 0 0 0 rgba(217, 185, 126, .6); animation: badgePulse 2.6s ease-out infinite; }
+@keyframes badgePulse { 0% { box-shadow: 0 0 0 0 rgba(217, 185, 126, .55); } 70%, 100% { box-shadow: 0 0 0 12px rgba(217, 185, 126, 0); } }
+.process.services { grid-template-columns: 1fr; gap: .9rem; }
+.process.services li { display: flex; align-items: center; gap: .9rem; }
+.process.services li::before { content: "\2726"; width: 2.2rem; height: 2.2rem; margin: 0; flex: none; font-size: 1.1rem; }
+.process.services strong { margin: 0; font-size: 1.12rem; }
+.services-note { margin: 1.2rem 0 0; max-width: 34rem; color: var(--muted); font-style: italic; }
+.commission-sec { padding-top: 0; }
+.commission-card { max-width: 40rem; background: var(--parch); color: var(--ink); padding: 1.6rem 1.8rem 1.2rem; margin: 8px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .15), 0 0 0 7px var(--red), 0 0 0 8px var(--gold-dk), 0 24px 40px -16px rgba(0, 0, 0, .8); transform: rotate(-.6deg); }
+.commission-title { margin: 0 0 .6rem; font-size: 2rem; font-weight: 800; line-height: 1; font-variation-settings: "opsz" 96, "wdth" 75; }
+.commission-list { margin: 0; }
+.commission-list div { display: grid; grid-template-columns: 7rem 1fr; gap: 1rem; padding: .7rem 0; border-bottom: 2px dashed rgba(30, 26, 22, .28); }
+.commission-list div:last-child { border-bottom: 0; }
+.commission-list dt { font-family: var(--hand); font-size: 1.3rem; color: var(--red); }
+.commission-list dd { margin: 0; font-weight: 600; }
+@media (max-width: 560px) { .commission-list div { grid-template-columns: 1fr; gap: .2rem; } }
+@media (prefers-reduced-motion: reduce) { .badge { animation: none; } }

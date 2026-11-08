@@ -481,8 +481,23 @@
   const bio = $("[data-bio]");
   (P.bio || []).forEach(t => bio.append(el("p", { class: "pop", text: t })));
   const proc = $("[data-process]");
-  (P.process || []).forEach(s => proc.append(el("li", { class: "pop" }, el("strong", { text: s.title }), el("p", { text: s.text }))));
-  if (!(P.process || []).length) proc.previousElementSibling.hidden = true;
+  if ((P.services || []).length) {
+    // "What I do" list
+    proc.classList.add("services");
+    P.services.forEach(t => proc.append(el("li", { class: "pop" }, el("strong", { text: t }))));
+    if (P.servicesNote) proc.after(el("p", { class: "services-note pop", text: P.servicesNote }));
+  } else {
+    (P.process || []).forEach(s => proc.append(el("li", { class: "pop" }, el("strong", { text: s.title }), el("p", { text: s.text }))));
+    if (!(P.process || []).length) proc.previousElementSibling.hidden = true;
+  }
+
+  /* ---------- commission info ---------- */
+  const COM = SITE.commission || {};
+  const comList = $("[data-commission]");
+  if ((COM.items || []).length) {
+    $("[data-commission-title]").textContent = COM.title || "Commission info";
+    COM.items.forEach(it => comList.append(el("div", {}, el("dt", { text: it.label }), el("dd", { text: it.text }))));
+  } else $("[data-commission-sec]").hidden = true;
 
   const facts = $("[data-facts]");
   const row = (dt, dd, cls) => facts.append(el("div", {}, el("dt", { text: dt }), el("dd", cls ? { class: cls } : {}, dd)));
