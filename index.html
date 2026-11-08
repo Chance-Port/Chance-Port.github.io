@@ -171,7 +171,7 @@
   </div>
 </div>
 
-<script src="content.js"></script>
-<script src="main.js"></script>
+<!-- always load the newest content (skips old cached copies) -->
+<script>var v = Date.now(); document.write('<script src="content.js?v=' + v + '"><\/script><script src="main.js?v=' + v + '"><\/script>');</script>
 </body>
 </html>
