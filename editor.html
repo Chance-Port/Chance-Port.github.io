@@ -217,9 +217,34 @@
         field("Discord username", C, "discord"), field("Email (optional)", C, "email", { hint: "Leave empty to hide it." }),
         field("X handle", C, "xHandle", { ph: "@Chancy2476" }), field("X profile link", C, "xUrl", { type: "url" }))));
 
+    // categories + styles
+    S.styles = S.styles || [];
+    S.categories = S.categories || [];
+    const catWrap = h("div");
+    const drawCats = () => {
+      catWrap.textContent = "";
+      S.categories.forEach((c, i) => {
+        c.subs = c.subs || [];
+        catWrap.append(h("div", { class: "box" },
+          h("div", { class: "box-head" }, h("strong", { text: c.name || "New category" }),
+            h("button", { type: "button", class: "small danger", text: "Delete", onclick: () => { if (confirm("Delete this category?")) { S.categories.splice(i, 1); save("Deleted"); drawCats(); } } })),
+          h("div", { class: "two" }, field("Main category", c, "name"), field("Description (optional)", c, "description")),
+          h("label", { text: "Smaller groups inside it" }),
+          rows(c.subs, ["name", "description"], ["Name, like Wearables", "Description (optional)"], "Add group", { name: "", description: "" })));
+      });
+      catWrap.append(h("button", { type: "button", text: "Add main category", onclick: () => { S.categories.push({ name: "", description: "", subs: [] }); save(); drawCats(); } }));
+    };
+    drawCats();
+    app.append(h("section", {},
+      h("h2", { text: "Categories & styles" }),
+      field("Styles, one per line (the wall is grouped in this order)", S, "styles", Object.assign({ area: true }, lines)),
+      h("p", { class: "help", text: "Categories become the filter buttons. A project uses the group names, like Wearables or Environment art." }),
+      catWrap));
+
     // projects
     const cats = [...new Set(S.projects.flatMap(p => String(p.category || "").split(",").map(c => c.trim()).filter(Boolean)))];
-    const dl = h("datalist", { id: "cats" }, cats.map(c => h("option", { value: c })));
+    const catNames = [...new Set([...cats, ...S.categories.flatMap(c => [c.name, ...(c.subs || []).map(x => x.name)])].filter(Boolean))];
+    const dl = h("div", {}, h("datalist", { id: "cats" }, catNames.map(c => h("option", { value: c }))), h("datalist", { id: "styles" }, (S.styles || []).map(c => h("option", { value: c }))));
     const projWrap = h("div");
     const drawProjects = () => {
       projWrap.textContent = "";
@@ -240,7 +265,8 @@
               h("button", { type: "button", class: "small danger", text: "Delete", onclick: () => { if (confirm("Delete " + (p.title || "this project") + "?")) { S.projects.splice(i, 1); save("Deleted"); drawProjects(); } } }))),
           h("div", { class: "two" },
             field("Title", p, "title", { after: v => title.textContent = v || "Untitled" }),
-            field("Category", p, "category", { list: "cats", hint: "More than one? Separate with commas: Environment art, 3D art" })),
+            field("Style", p, "style", { list: "styles", hint: "Like Stylized-Cel Shaded or Realistic" })),
+          field("Category", p, "category", { list: "cats", hint: "Use group names. More than one? Separate with commas: Wearables, Weapons" }),
           field("Description", p, "description", { area: true, hint: "Leave an empty line between paragraphs." }),
           h("div", { class: "two" },
             h("div", {}, field("Main picture or video", p, "image", { ph: "render.jpg or turntable.mp4", hint: "A picture, an .mp4/.webm video, or a YouTube link. Videos play silently on the wall.", after: th.upd }), th.img),
@@ -255,7 +281,7 @@
     drawProjects();
     app.append(h("section", {},
       h("div", { class: "box-head" }, h("h2", { text: "Projects" }),
-        h("button", { type: "button", class: "primary", text: "Add project", onclick: () => { S.projects.unshift({ title: "New project", category: "3D art", description: "", image: "", gallery: [], video: "", link: "", featured: false }); save("Added"); drawProjects(); } })),
+        h("button", { type: "button", class: "primary", text: "Add project", onclick: () => { S.projects.unshift({ title: "New project", style: (S.styles || [])[0] || "", category: "Wearables", description: "", image: "", gallery: [], video: "", link: "", featured: false }); save("Added"); drawProjects(); } })),
       h("p", { class: "help", text: "Video tip: keep video files under 25 MB (GitHub's upload limit). Bigger ones: put them on YouTube and paste the link." }),
       dl, projWrap));
   }

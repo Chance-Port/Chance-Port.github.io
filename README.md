@@ -6,7 +6,7 @@ Live at https://chance-port.github.io
 - `index.html`, `style.css`, `main.js`: the site (no need to edit)
 - `content.js`: all your text, titles, skills, contacts and projects
 - `editor.html`: visual editor for `content.js`
-- `images/`: your renders, videos and software logos
+- `*.jpg`: your renders (they sit next to index.html)
 
 ## Updating the site
 1. Go to https://chance-port.github.io/editor.html
@@ -15,13 +15,13 @@ Live at https://chance-port.github.io
 4. On GitHub: **Add file → Upload files**, drop in `content.js`, **Commit changes**
 
 ## Pictures and videos
-- Upload them into the `images` folder, then type the path in the editor: `images/house.jpg` or `images/turntable.mp4`
+- Upload them next to index.html, then type the file name in the editor: `house.jpg` or `turntable.mp4`
 - YouTube links work too
 - GitHub's upload limit is 25 MB per file. Use YouTube for bigger videos.
 
 ## Software logos
-Upload the official logo files into `images` with these names:
-- `images/blender.png`
-- `images/substance-painter.png`
-- `images/roblox-studio.png`
+Upload the official logo files next to index.html with these names:
+- `blender.png`
+- `substance-painter.png`
+- `roblox-studio.png`
 Until they're there, a hand-drawn sketch shows instead.

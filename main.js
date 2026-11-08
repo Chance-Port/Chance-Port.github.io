@@ -163,15 +163,25 @@
 
   /* ---------- work wall ---------- */
   const grid = $("#grid");
-  const ordered = projects.map((p, i) => ({ p, i })).sort((a, b) => (b.p.featured ? 1 : 0) - (a.p.featured ? 1 : 0));
+  // the wall is grouped by style, in the order listed in content.js
+  const STYLES = (SITE.styles || []).slice();
+  const styleOf = p => p.style || STYLES[0] || "";
+  projects.forEach(p => { const st = styleOf(p); if (st && !STYLES.includes(st)) STYLES.push(st); });
+  const all = projects.map((p, i) => ({ p, i }));
+  const groups = STYLES.length ? STYLES.map(st => ({ st, items: all.filter(o => styleOf(o.p) === st) })) : [{ st: "", items: all }];
   if (!projects.length) grid.append(el("p", { class: "grid-empty", text: "New work is on the way." }));
-  ordered.forEach(({ p, i }, n) => {
+  const CATS = SITE.categories || [];
+  const subOwner = {};
+  CATS.forEach(c => (c.subs || []).forEach(sb => { subOwner[sb.name] = c.name; }));
+  const mainsOf = p => [...new Set(catsOf(p).map(c => subOwner[c] || c))];
+  let n = 0;
+  function makeCard(p, i) {
     const tiltDeg = TILTS[n % TILTS.length];
     const tilt = el("div", { class: "tilt" }, framed(cover(p), FRAMES[n % FRAMES.length]));
     const hang = el("div", { class: "hang", style: `--tilt:${tiltDeg}deg` }, tilt);
     whenHung(hang);
     const card = el("a", {
-      class: "card" + (p.featured ? " featured" : ""), href: "#project-" + (i + 1), "data-index": i, "data-cat": catsOf(p).join("|"),
+      class: "card" + (p.featured ? " featured" : ""), href: "#project-" + (i + 1), "data-index": i, "data-cat": catsOf(p).join("|"), "data-main": mainsOf(p).join("|"),
       "aria-label": (p.title || "Untitled") + ", flip for details",
       style: `--dy:${p.featured ? 0 : [0, 2.5, 1, 3, .5, 1.8][n % 6]}rem;--d:${(n % 3) * .14}s;--lt:${-tiltDeg}deg`
     }, hang, el("div", { class: "label" }, el("span", { class: "label-title", text: p.title || "Untitled" }), catsOf(p).length ? el("span", { class: "label-cat", text: catText(p) }) : null));
@@ -189,29 +199,69 @@
       card.addEventListener("pointerleave", () => { tilt.style.transform = ""; });
     }
     grid.append(card);
+    n++;
+  }
+  groups.forEach(g => {
+    if (!g.items.length) return;
+    if (g.st && groups.filter(x => x.items.length).length > 1) grid.append(el("div", { class: "style-head", "data-style": g.st }, el("span", { text: g.st })));
+    g.items.forEach(({ p, i }) => makeCard(p, i));
   });
 
-  const cats = [...new Set(projects.flatMap(catsOf))];
+  /* ---------- filters: main categories, then their smaller groups ---------- */
   const filterBar = $(".filters");
-  if (cats.length > 1) {
+  const mains = (CATS.length ? CATS.map(c => c.name) : [...new Set(projects.flatMap(mainsOf))]).filter(m => projects.some(p => mainsOf(p).includes(m)));
+  if (mains.length > 1 || CATS.some(c => (c.subs || []).length)) {
     filterBar.hidden = false;
-    ["All", ...cats].forEach((c, n) => {
-      const b = el("button", { type: "button", "aria-pressed": n === 0 ? "true" : "false", text: c });
-      b.addEventListener("click", () => {
-        $$("button", filterBar).forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
-        let k = 0;
-        $$(".card", grid).forEach(card => {
-          const show = c === "All" || card.dataset.cat.split("|").includes(c);
-          card.classList.toggle("hide", !show);
-          if (show && !reduce) {
-            const h = $(".hang", card);
-            h.classList.remove("hung", "swing");
-            card.style.setProperty("--d", (k++ % 3) * .1 + "s");
-            void h.offsetWidth;
-          }
-        });
+    const row1 = el("div", { class: "filter-row" }), row2 = el("div", { class: "filter-row sub" }), note = el("p", { class: "filter-note" });
+    row2.hidden = true; note.hidden = true;
+    filterBar.append(row1, row2, note);
+    let main = "All", sub = "";
+    const press = (row, btn) => $$("button", row).forEach(x => x.setAttribute("aria-pressed", x === btn ? "true" : "false"));
+    function apply() {
+      let k = 0;
+      $$(".card", grid).forEach(card => {
+        const show = (main === "All" || card.dataset.main.split("|").includes(main)) && (!sub || card.dataset.cat.split("|").includes(sub));
+        const was = !card.classList.contains("hide");
+        card.classList.toggle("hide", !show);
+        if (show && !reduce) {
+          const h = $(".hang", card);
+          h.classList.remove("hung", "swing");
+          card.style.setProperty("--d", (k++ % 3) * .08 + "s");
+          void h.offsetWidth;
+        }
       });
-      filterBar.append(b);
+      // hide a style title when none of its frames are showing
+      $$(".style-head", grid).forEach(hd => {
+        let x = hd.nextElementSibling, any = false;
+        while (x && !x.classList.contains("style-head")) { if (!x.classList.contains("hide")) any = true; x = x.nextElementSibling; }
+        hd.hidden = !any;
+      });
+    }
+    function setNote(text) { note.textContent = text || ""; note.hidden = !text; }
+    function showSubs(m) {
+      row2.textContent = "";
+      const c = CATS.find(x => x.name === m);
+      const subs = c ? (c.subs || []).filter(sb => projects.some(p => catsOf(p).includes(sb.name))) : [];
+      row2.hidden = !subs.length;
+      if (!subs.length) return;
+      const allBtn = el("button", { type: "button", "aria-pressed": "true", text: "All " + m });
+      allBtn.addEventListener("click", () => { sub = ""; press(row2, allBtn); setNote(c.description); apply(); });
+      row2.append(allBtn);
+      subs.forEach(sb => {
+        const b = el("button", { type: "button", "aria-pressed": "false", text: sb.name, title: sb.description || "" });
+        b.addEventListener("click", () => { sub = sb.name; press(row2, b); setNote(sb.description); apply(); });
+        row2.append(b);
+      });
+      if (!reduce) row2.animate([{ opacity: 0, transform: "translateY(-8px)" }, { opacity: 1, transform: "none" }], { duration: 350, easing: "ease-out" });
+    }
+    ["All", ...mains].forEach((m, idx) => {
+      const b = el("button", { type: "button", "aria-pressed": idx === 0 ? "true" : "false", text: m });
+      b.addEventListener("click", () => {
+        main = m; sub = ""; press(row1, b);
+        const c = CATS.find(x => x.name === m);
+        showSubs(m); setNote(c && c.description); apply();
+      });
+      row1.append(b);
     });
   }
 

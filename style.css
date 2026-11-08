@@ -549,3 +549,13 @@ main, .nav, .progress { position: relative; z-index: 2; }
 /* show the whole render on the wall, not a cropped part */
 .card .art { background: #161616; }
 .card .art img, .card .art video { object-fit: contain; }
+
+/* style titles on the wall + two-row filters */
+.style-head { grid-column: 1 / -1; display: flex; align-items: center; gap: 1.2rem; margin: 1rem 0 -1rem; font-family: var(--hand); font-size: clamp(1.6rem, 3vw, 2.2rem); color: var(--gold-lt); }
+.style-head::after { content: ""; flex: 1; height: 2px; background: linear-gradient(90deg, rgba(184, 147, 90, .7), transparent); }
+.style-head:first-child { margin-top: 0; }
+.filters { flex-direction: column; align-items: flex-end; gap: .6rem; }
+.filter-row { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; }
+.filter-row.sub button { font-size: .92rem; padding: .25rem .8rem; border-color: rgba(184, 147, 90, .7); }
+.filter-note { margin: 0; font-family: var(--hand); font-size: 1.2rem; color: var(--gold-lt); text-align: right; }
+@media (max-width: 700px) { .filters { align-items: flex-start; } .filter-row { justify-content: flex-start; } .filter-note { text-align: left; } }

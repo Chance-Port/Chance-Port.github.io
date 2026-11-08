@@ -73,26 +73,57 @@ window.SITE = {
     email: ""
   },
 
-  /* PROJECTS (shown in this order)
-     image:      main picture OR video: "render.jpg", "turntable.mp4" or a YouTube link
+  /* CATEGORIES: main groups and their smaller groups (shown as filter buttons) */
+  categories: [
+    { name: "3D art", description: "", subs: [
+      { name: "Wearables", description: "Clothes, armor and UGC accessories" },
+      { name: "Characters", description: "" },
+      { name: "Creatures", description: "" },
+      { name: "Weapons", description: "" },
+      { name: "Vehicles", description: "" },
+      { name: "Props", description: "" }
+    ] },
+    { name: "Environment art", description: "", subs: [] }
+  ],
+
+  /* STYLES: the wall is grouped by style, in this order */
+  styles: ["Stylized-Cel Shaded", "Realistic"],
+
+  /* PROJECTS (shown in this order inside each style)
+     style:      one of the styles above
+     category:   one or more, separated by commas: "Wearables, Weapons" or "Environment art, Props"
+     image:      main picture OR video file name, or a YouTube link
      gallery:    more pictures/videos for the full view
-     category:   one or more, separated by commas: "Environment art, 3D art"
-     references: optional, shown under "Reference" in the full view:
-                 [{ image: "ref.jpg", credit: "Character, Game" }]
-     featured:   true makes it a big frame
-     Delete a whole { ... } line to remove a slot. */
+     references: optional, shown under "Reference" in the full view
+     featured:   true makes it a big frame */
   projects: [
-    { title: "Project 05", category: "3D art", description: "", image: "flame-uniform-1.jpg", gallery: ["flame-uniform-2.jpg"], video: "", featured: false, references: [{ image: "flame-uniform-ref-1.jpg", credit: "Rengoku, Demon Slayer" }, { image: "flame-uniform-ref-2.jpg", credit: "Post-apocalypse AU concept, fan art" }] },
-    { title: "Project 02", category: "Environment art", description: "", image: "night-arena-1.jpg", gallery: [], video: "", featured: false, references: [{ image: "night-arena-ref-1.jpg", credit: "" }] },
-    { title: "Project 04", category: "Environment art, 3D art", description: "", image: "train-interior-1.jpg", gallery: ["train-interior-2.jpg", "train-interior-3.jpg"], video: "", featured: false },
-    { title: "Project 01", category: "3D art", description: "", image: "gold-armor-1.jpg", gallery: ["gold-armor-2.jpg", "gold-armor-3.jpg"], video: "", featured: false, references: [{ image: "gold-armor-ref-1.jpg", credit: "Asura, Asura's Wrath" }] },
-    { title: "Project 03", category: "3D art", description: "", image: "purple-outfit-1.jpg", gallery: ["purple-outfit-2.jpg", "purple-outfit-3.jpg"], video: "", featured: false, references: [{ image: "purple-outfit-ref-1.jpg", credit: "Diavolo, JoJo's Bizarre Adventure" }] },
-    { title: "Project 06", category: "3D art", description: "", image: "", gallery: [], video: "", featured: false },
-    { title: "Project 07", category: "3D art", description: "", image: "", gallery: [], video: "", featured: false },
-    { title: "Project 08", category: "3D art", description: "", image: "", gallery: [], video: "", featured: false },
-    { title: "Project 09", category: "3D art", description: "", image: "", gallery: [], video: "", featured: false },
-    { title: "Project 10", category: "3D art", description: "", image: "", gallery: [], video: "", featured: false },
-    { title: "Project 11", category: "3D art", description: "", image: "", gallery: [], video: "", featured: false },
-    { title: "Project 12", category: "3D art", description: "", image: "", gallery: [], video: "", featured: false }
+    { title: "Project 19", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "red-coat-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 08", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "hooded-cape-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 14", style: "Stylized-Cel Shaded", category: "Creatures", description: "", image: "dragon-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 26", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "purple-wrap-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 03", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "purple-outfit-1.jpg", gallery: ["purple-outfit-2.jpg", "purple-outfit-3.jpg"], video: "", featured: false, references: [{ image: "purple-outfit-ref-1.jpg", credit: "Diavolo, JoJo's Bizarre Adventure" }] },
+    { title: "Project 18", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "bloody-headband-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 01", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "gold-armor-1.jpg", gallery: ["gold-armor-2.jpg", "gold-armor-3.jpg"], video: "", featured: false, references: [{ image: "gold-armor-ref-1.jpg", credit: "Asura, Asura's Wrath" }] },
+    { title: "Project 17", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "skull-knight-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 24", style: "Stylized-Cel Shaded", category: "Weapons", description: "", image: "jagged-sword-1.jpg", gallery: ["jagged-sword-2.jpg"], video: "", featured: false },
+    { title: "Project 22", style: "Stylized-Cel Shaded", category: "Weapons", description: "", image: "cleaver-sword-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 25", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "red-knight-1.jpg", gallery: [], video: "", featured: false, references: [{ image: "red-knight-ref-1.jpg", credit: "Igris, Solo Leveling" }] },
+    { title: "Project 05", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "flame-uniform-1.jpg", gallery: ["flame-uniform-2.jpg"], video: "", featured: false, references: [{ image: "flame-uniform-ref-1.jpg", credit: "Rengoku, Demon Slayer" }, { image: "flame-uniform-ref-2.jpg", credit: "Post-apocalypse AU concept, fan art" }] },
+    { title: "Project 12", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "gear-cloak-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 09", style: "Stylized-Cel Shaded", category: "Wearables, Weapons", description: "", image: "viking-set-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 04", style: "Stylized-Cel Shaded", category: "Environment art, Props", description: "", image: "train-interior-1.jpg", gallery: ["train-interior-2.jpg", "train-interior-3.jpg"], video: "", featured: false },
+    { title: "Project 02", style: "Stylized-Cel Shaded", category: "Environment art", description: "", image: "night-arena-1.jpg", gallery: [], video: "", featured: false, references: [{ image: "night-arena-ref-1.jpg", credit: "" }] },
+    { title: "Project 27", style: "Stylized-Cel Shaded", category: "Environment art, 3D art", description: "", image: "storage-room-1.jpg", gallery: ["storage-room-2.jpg"], video: "", featured: false },
+    { title: "Project 07", style: "Stylized-Cel Shaded", category: "Weapons", description: "", image: "blaster-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 28", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "layered-robe-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 20", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "straw-hat-cape-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 13", style: "Stylized-Cel Shaded", category: "Vehicles", description: "", image: "hoverbike-1.jpg", gallery: [], video: "", featured: false, references: [{ image: "hoverbike-ref-1.jpg", credit: "" }] },
+    { title: "Project 16", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "hood-mask-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 15", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "tactical-mask-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 21", style: "Stylized-Cel Shaded", category: "Weapons", description: "", image: "star-greatsword-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 23", style: "Stylized-Cel Shaded", category: "Wearables, Weapons", description: "", image: "white-jacket-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 11", style: "Stylized-Cel Shaded", category: "Wearables", description: "", image: "hokage-robe-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 10", style: "Stylized-Cel Shaded", category: "Characters", description: "", image: "dante-1.jpg", gallery: [], video: "", featured: false },
+    { title: "Project 06", style: "Realistic", category: "Wearables", description: "", image: "bronze-armor-1.jpg", gallery: [], video: "", featured: false }
   ]
 };
