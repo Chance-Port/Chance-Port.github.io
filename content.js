@@ -124,19 +124,27 @@ window.SITE = {
     { title: "", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "layered-robe-1.jpg", gallery: [], video: "", featured: false },
     { title: "", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "skull-knight-1.jpg", gallery: [], video: "", featured: false },
     { title: "", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "purple-wrap-1.jpg", gallery: [], video: "", featured: false },
+    { title: "", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "bat-samurai-helmet-1.jpg", gallery: [], video: "", featured: false },
+    { title: "", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "fox-cloak-1.jpg", gallery: [], video: "", featured: false },
     { title: "", style: "Stylized-Cel Shaded", category: "Character Cosmetics", description: "", image: "gold-armor-1.jpg", gallery: ["gold-armor-2.jpg", "gold-armor-3.jpg"], video: "", featured: false, references: [{ image: "gold-armor-ref-1.jpg", credit: "Asura, Asura's Wrath" }] },
     { title: "", style: "Stylized-Cel Shaded", category: "Character Cosmetics, Weapons", description: "", image: "viking-set-1.jpg", gallery: [], video: "", featured: false },
     { title: "", style: "Stylized-Cel Shaded", category: "Character Cosmetics, Weapons", description: "", image: "white-jacket-1.jpg", gallery: [], video: "", featured: false },
     { title: "", style: "Stylized-Cel Shaded", category: "Characters", description: "", image: "dante-1.jpg", gallery: [], video: "", featured: false },
+    { title: "", style: "Stylized-Cel Shaded", category: "Characters", description: "", image: "wheel-robot-1.jpg", gallery: [], video: "", featured: false },
     { title: "", style: "Stylized-Cel Shaded", category: "Creatures", description: "", image: "dragon-1.jpg", gallery: [], video: "", featured: false },
     { title: "", style: "Stylized-Cel Shaded", category: "Weapons", description: "", image: "blaster-1.jpg", gallery: [], video: "", featured: false },
     { title: "", style: "Stylized-Cel Shaded", category: "Weapons", description: "", image: "jagged-sword-1.jpg", gallery: ["jagged-sword-2.jpg"], video: "", featured: false },
     { title: "", style: "Stylized-Cel Shaded", category: "Weapons", description: "", image: "cleaver-sword-1.jpg", gallery: [], video: "", featured: false },
     { title: "", style: "Stylized-Cel Shaded", category: "Weapons", description: "", image: "star-greatsword-1.jpg", gallery: [], video: "", featured: false },
+    { title: "", style: "Stylized-Cel Shaded", category: "Vehicles", description: "", image: "dirt-bike-1.jpg", gallery: [], video: "", featured: false },
     { title: "", style: "Stylized-Cel Shaded", category: "Vehicles", description: "", image: "hoverbike-1.jpg", gallery: [], video: "", featured: true, references: [{ image: "hoverbike-ref-1.jpg", credit: "" }] },
     { title: "", style: "Stylized-Cel Shaded", category: "Environment art, Props", description: "", image: "train-interior-1.jpg", gallery: ["train-interior-2.jpg", "train-interior-3.jpg"], video: "", featured: true },
     { title: "", style: "Stylized-Cel Shaded", category: "Environment art, 3D art", description: "", image: "storage-room-1.jpg", gallery: ["storage-room-2.jpg"], video: "", featured: false },
     { title: "", style: "Stylized-Cel Shaded", category: "Environment art", description: "", image: "night-arena-1.jpg", gallery: [], video: "", featured: false, references: [{ image: "night-arena-ref-1.jpg", credit: "" }] },
-    { title: "", style: "Realistic", category: "Character Cosmetics", description: "", image: "bronze-armor-1.jpg", gallery: [], video: "", featured: false }
+    { title: "", style: "Realistic", category: "Character Cosmetics", description: "", image: "power-armor-1.jpg", gallery: [], video: "", featured: false },
+    { title: "", style: "Realistic", category: "Character Cosmetics", description: "", image: "bronze-armor-1.jpg", gallery: [], video: "", featured: false },
+    { title: "", style: "Realistic", category: "Character Cosmetics", description: "", image: "blue-helmet-1.jpg", gallery: [], video: "", featured: false },
+    { title: "", style: "Realistic", category: "Weapons", description: "", image: "combat-knife-1.jpg", gallery: [], video: "", featured: false },
+    { title: "", style: "Realistic", category: "Weapons", description: "", image: "scoped-blaster-1.jpg", gallery: [], video: "", featured: false }
   ]
 };
