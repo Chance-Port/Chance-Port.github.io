@@ -504,7 +504,7 @@
   function tick() {
     const t = timeNow();
     liveDd.textContent = t + (P.timezoneLabel ? " (" + P.timezoneLabel + ")" : "");
-    clock.textContent = "It's " + t + " for me in " + (P.location || "my timezone") + " right now.";
+    clock.textContent = "It's " + t + " for me" + (P.location ? " in " + P.location : "") + " rn.";
   }
   tick(); setInterval(tick, 20000);
 

@@ -8,24 +8,24 @@ window.SITE = {
   profile: {
     name: "Chance",
     role: "3D artist",
-    intro: "Armor, outfits, weapons and whole rooms, sculpted in Blender and painted by hand until they feel alive.",
+    intro: "Armor, fits, weapons & full rooms. Modeled in Blender, hand-painted till they look alive.",
     age: "16",
     location: "Egypt",
     timezoneLabel: "EET, UTC+2",
     timeZone: "Africa/Cairo",
     bio: [
-      "Hey, I'm Chance. I'm 16, from Egypt, and I spend most of my time turning ideas into 3D: armor sets, wild weapons, little worlds you could walk into.",
-      "I've been building environments for about 3 years and modeling in Blender for 2.5. I love painted looks with heavy ink lines, but I'll go realistic when a piece calls for it.",
-      "Got a character, an outfit or a place stuck in your head? I'll help you get it out, and I'll keep you in the loop the whole way so it turns out how you pictured it."
+      "16 y/o 3D artist. Mostly armor sets, wild weapons & little worlds u could walk into.",
+      "3 yrs doing environments, 2.5 yrs modeling in Blender. Love painted stuff w/ heavy ink lines, but I go realistic when a piece needs it.",
+      "Got a character, fit or place stuck in ur head? I'll get it out & keep u updated the whole way so it ends up how u pictured it."
     ],
     facts: [
-      { label: "Building & environment art", value: "3 years" },
-      { label: "Modeling in Blender", value: "2.5 years" }
+      { label: "Env art", value: "3 yrs" },
+      { label: "Blender", value: "2.5 yrs" }
     ],
     process: [
-      { title: "Tell me your idea", text: "Send me what you're picturing: sketches, references, vibes, anything." },
-      { title: "I keep you posted", text: "You'll see it come together as I go, so we can tweak stuff early." },
-      { title: "You get your piece", text: "Finished, polished and how you pictured it." }
+      { title: "Send ur idea", text: "Sketches, refs, vibes, whatever u got." },
+      { title: "I keep u posted", text: "U see it come together so we can tweak stuff early." },
+      { title: "U get ur piece", text: "Done, polished & how u pictured it." }
     ]
   },
 
@@ -48,15 +48,15 @@ window.SITE = {
     skills: "Skills",
     contact: "Contact",
     contactTitle: "Got an idea? Let's make it.",
-    contactText: "Hit me up on Discord or X with what you've got in mind and we'll figure it out together.",
+    contactText: "Hit me up on Discord or X w/ what u got in mind & we'll figure it out.",
     heroButton1: "Check out my work",
     heroButton2: "Contact me"
   },
 
   timeline: [
-    { when: "2023", text: "Started building and environment art" },
+    { when: "2023", text: "Started env art" },
     { when: "2024", text: "Started modeling in Blender" },
-    { when: "Now", text: "Open for requests and collabs" }
+    { when: "Now", text: "Open for requests & collabs" }
   ],
 
   skills: [
