@@ -261,8 +261,65 @@
       });
       card.addEventListener("pointerleave", () => { card.style.setProperty("--rx", "0deg"); card.style.setProperty("--ry", "0deg"); });
     }
+    if (p.featured) caveify(card, media, i + 7);
     grid.append(card);
     n++;
+  }
+
+  // Top picks sit inside little caves: a rocky arch carved into the wall, moss, hanging vines, a warm glow
+  function caveify(card, media, seed) {
+    let sd = seed * 9301 + 49297;
+    const rnd = () => { sd = (sd * 9301 + 49297) % 233280; return sd / 233280; };
+    const j = a => (rnd() - .5) * a;
+    const pts = [];
+    pts.push([8 + j(2), 100]);
+    for (let y = 85; y >= 45; y -= 10) pts.push([8.5 + j(2.6) + (85 - y) * .03, y]);
+    const cx = 50 + j(3), cy = 44 + j(3), rx = 40 + j(2), ry = 34 + j(4);
+    for (let a = 180; a >= 0; a -= 12) {
+      const r = a * Math.PI / 180;
+      pts.push([cx + Math.cos(r) * rx + j(2.2), cy - Math.sin(r) * ry + j(2.2)]);
+    }
+    for (let y = 45; y <= 85; y += 10) pts.push([91.5 + j(2.6) - (85 - y) * .03, y]);
+    pts.push([92 + j(2), 100]);
+    const f = v => v.toFixed(1);
+    media.style.clipPath = "polygon(" + pts.map(([x, y]) => f(x) + "% " + f(y) + "%").join(",") + ")";
+    const hole = "M" + pts.map(([x, y]) => f(x) + " " + f(y)).join(" L") + " Z";
+    let deco = "";
+    // cracks + darker stones in the rock
+    for (let k = 0; k < 7; k++) {
+      const side = rnd() < .5 ? rnd() * 7 : 93 + rnd() * 7, y = 10 + rnd() * 80;
+      deco += `<path d="M${f(side)} ${f(y)} l${f(j(5))} ${f(4 + rnd() * 6)} l${f(j(4))} ${f(3 + rnd() * 5)}" stroke="#0a1412" stroke-width="1" fill="none" vector-effect="non-scaling-stroke"/>`;
+    }
+    for (let k = 0; k < 5; k++) deco += `<ellipse cx="${f(rnd() * 100)}" cy="${f(rnd() * 9)}" rx="${f(3 + rnd() * 6)}" ry="${f(1.5 + rnd() * 2)}" fill="#14221f"/>`;
+    // moss along the top of the arch
+    const top = pts.filter(([, y]) => y < 30);
+    top.forEach(([x, y], k) => {
+      if (rnd() < .8) deco += `<ellipse cx="${f(x + j(3))}" cy="${f(y - .9)}" rx="${f(1.8 + rnd() * 2.2)}" ry="${f(.7 + rnd() * .6)}" fill="${k % 2 ? "#24452f" : "#2e5838"}"/>`;
+      if (rnd() < .5) deco += `<ellipse cx="${f(x + j(4))}" cy="${f(y - .4)}" rx="${f(1 + rnd() * 1.2)}" ry=".5" fill="#3b6b45"/>`;
+    });
+    // vines hanging into the opening
+    let vines = "";
+    const vineAt = top.filter(() => rnd() < .5).slice(0, 3);
+    vineAt.forEach(([x, y], k) => {
+      const len = 16 + rnd() * 22, sw = j(6);
+      let leaves = "";
+      for (let t = .2; t < 1; t += .18 + rnd() * .1) leaves += `<ellipse cx="${f(x + sw * t + (k % 2 ? 1 : -1))}" cy="${f(y + len * t)}" rx="1.3" ry=".55" fill="#386a42" transform="rotate(${f(j(70))} ${f(x + sw * t)} ${f(y + len * t)})"/>`;
+      vines += `<g class="vine" style="animation-delay:${(-rnd() * 4).toFixed(2)}s"><path d="M${f(x)} ${f(y)} q${f(sw)} ${f(len * .5)} ${f(sw * .6)} ${f(len)}" stroke="#2a4d33" stroke-width="1.4" fill="none" vector-effect="non-scaling-stroke"/>${leaves}</g>`;
+    });
+    // a glowing mushroom by the edge
+    const mx = rnd() < .5 ? 4 + rnd() * 3 : 93 + rnd() * 3;
+    const mush = `<g class="cave-mush"><rect x="${f(mx - .4)}" y="88" width=".8" height="5" fill="#1b3a35"/><ellipse cx="${f(mx)}" cy="88" rx="2.6" ry="1.6" fill="#8ff1e2"/></g>`;
+    const rim = el("div", { class: "cave-rim", "aria-hidden": "true", html:
+      `<svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0 0H100V100H0Z ${hole}" fill-rule="evenodd" fill="url(#rock${seed})"/>` +
+      `<defs><linearGradient id="rock${seed}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c2c28"/><stop offset=".6" stop-color="#15221f"/><stop offset="1" stop-color="#0e1816"/></linearGradient></defs>` +
+      `<path d="${hole}" fill="none" stroke="#3a5a4e" stroke-width="2" vector-effect="non-scaling-stroke" opacity=".85"/>` +
+      `<path d="${hole}" fill="none" stroke="#08100e" stroke-width="5" vector-effect="non-scaling-stroke" opacity=".55" transform="translate(0 .6)"/>` +
+      deco + mush + vines + `</svg>` });
+    const flies = el("div", { class: "cave-flies", "aria-hidden": "true" });
+    for (let k = 0; k < 6; k++) flies.append(el("span", { style: `left:${(25 + rnd() * 50).toFixed(1)}%;animation-delay:${(rnd() * 1.6).toFixed(2)}s;--dx:${(j(60)).toFixed(0)}px` }));
+    card.classList.add("cave");
+    card.insertBefore(rim, media.nextSibling);
+    card.insertBefore(flies, rim.nextSibling);
   }
   groups.forEach(g => {
     if (!g.items.length) return;
@@ -580,19 +637,15 @@
     if (push && location.hash !== hash) history.pushState({ viewer: true }, "", hash);
     if (!viewer.hidden) return;
     lastFocus = $('.card[data-index="' + i + '"]');
-    viewer.style.transition = "none";
-    setClip(reduce ? null : (from || cardInset(i)));
+    setClip(null);
     viewer.hidden = false;
     viewer.scrollTop = 0;
     document.body.classList.add("no-scroll");
-    void viewer.offsetWidth;
-    viewer.style.transition = "";
-    setClip(null);
+    fadeIn(viewer);
     $(".viewer-close", viewer).focus({ preventScroll: true });
   }
   function closeViewer() {
     if (viewer.hidden) return;
-    const to = reduce ? null : cardInset(current);
     const done = () => {
       if (viewer.hidden) return;
       viewer.hidden = true;
@@ -602,11 +655,15 @@
       if (lastFocus) lastFocus.focus({ preventScroll: true });
       current = -1;
     };
-    if (to) {
-      setClip(to);
-      viewer.addEventListener("transitionend", function te(e) { if (e.target === viewer) { viewer.removeEventListener("transitionend", te); done(); } });
-      setTimeout(done, 900);
-    } else done();
+    fadeOut(viewer, done);
+  }
+  // quick, simple fades for anything that opens or closes
+  function fadeIn(node) { if (!reduce) node.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: "ease-out" }); }
+  function fadeOut(node, then) {
+    if (reduce) return then();
+    const a = node.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 150, easing: "ease-in" });
+    let ran = false; const fin = () => { if (!ran) { ran = true; then(); } };
+    a.onfinish = fin; setTimeout(fin, 260);
   }
   function requestClose() {
     if (history.state && history.state.viewer) history.back();
@@ -645,12 +702,12 @@
   function openZoom(list, idx) {
     zList = list; zIdx = idx; zLastFocus = document.activeElement;
     zImg.src = list[idx]; zImg.alt = $("[data-v-title]", viewer).textContent + " (zoomed)";
-    zoom.hidden = false; zReset();
+    zoom.hidden = false; zReset(); fadeIn(zoom);
     $(".zoom-prev", zoom).hidden = $(".zoom-next", zoom).hidden = list.length < 2;
     $(".zoom-count", zoom).textContent = list.length > 1 ? (idx + 1) + " / " + list.length : "";
     $(".zoom-close", zoom).focus({ preventScroll: true });
   }
-  function closeZoom() { zoom.hidden = true; zImg.removeAttribute("src"); if (zLastFocus) zLastFocus.focus({ preventScroll: true }); }
+  function closeZoom() { fadeOut(zoom, () => { zoom.hidden = true; zImg.removeAttribute("src"); }); if (zLastFocus) zLastFocus.focus({ preventScroll: true }); }
   function zGo(d) {
     if (zList.length < 2) return;
     zIdx = (zIdx + d + zList.length) % zList.length;
@@ -842,7 +899,7 @@
   (function statsBand() {
     const band = $("[data-statsband]");
     if (!band) return;
-    const items = [{ n: projects.length, cap: "projects", dec: 0 }];
+    const items = [];
     (P.facts || []).forEach(f => {
       const m = /([\d.]+)\s*(.*)/.exec(String(f.value || ""));
       if (m) items.push({ n: parseFloat(m[1]), cap: ((m[2] || "") + " " + (f.label || "")).trim(), dec: m[1].includes(".") ? 1 : 0 });

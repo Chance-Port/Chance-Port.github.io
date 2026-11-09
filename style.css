@@ -784,3 +784,37 @@ main, .nav, .progress { position: relative; z-index: 2; }
 .tile-media.fit-cover img, .tile-media.fit-cover video { object-fit: cover; padding: 0; filter: none; }
 .tile-media.fit-cover .tile-bg { display: none; }
 .tile-info { padding-top: 2.6rem; }
+
+/* simple fades instead of wipes */
+.viewer { clip-path: none !important; }
+@media (max-width: 700px) {
+  .nav-links { clip-path: none !important; opacity: 0; transition: opacity .2s ease, visibility 0s .2s; }
+  .nav-links.open { opacity: 1; transition: opacity .2s ease; }
+}
+
+/* =========================================================
+   CAVES for Top picks
+   ========================================================= */
+.tile.cave { background: #0e1816; box-shadow: 0 22px 44px -22px rgba(0, 0, 0, .95); }
+.tile.cave .tile-media { z-index: 0; }
+.tile.cave .tile-media::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(70% 55% at 50% 92%, rgba(246, 198, 111, .28), transparent 70%); opacity: .7; transition: opacity .5s; z-index: 1; }
+.tile.cave:hover .tile-media::after { opacity: 1; }
+.tile.cave .tile-media img { filter: brightness(.9) drop-shadow(0 14px 22px rgba(0, 0, 0, .55)); transition: transform .8s var(--ease), opacity .5s, filter .5s; }
+.tile.cave:hover .tile-media img { filter: brightness(1.08) drop-shadow(0 14px 22px rgba(0, 0, 0, .55)); }
+.cave-rim { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.cave-rim svg { width: 100%; height: 100%; display: block; }
+.cave-rim .vine { transform-box: fill-box; transform-origin: 50% 0; animation: vineSway 5s ease-in-out infinite alternate; }
+.tile.cave:hover .cave-rim .vine { animation-duration: 1.6s; }
+@keyframes vineSway { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+.cave-rim .cave-mush ellipse { filter: drop-shadow(0 0 1.5px #8ff1e2); animation: mushGlow 3s ease-in-out infinite alternate; }
+@keyframes mushGlow { from { opacity: .7; } to { opacity: 1; } }
+.cave-flies { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+.cave-flies span { position: absolute; bottom: 18%; width: 6px; height: 6px; border-radius: 50%; opacity: 0; background: radial-gradient(circle, #f6ffc8, rgba(175, 225, 120, .4) 50%, transparent 70%); box-shadow: 0 0 10px 2px rgba(220, 245, 150, .45); }
+.tile.cave:hover .cave-flies span { animation: caveFly 2.6s ease-out infinite; }
+@keyframes caveFly { 0% { opacity: 0; transform: translate(0, 0); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx, 0), -180px); } }
+.tile.cave .tile-info { z-index: 3; }
+.tile.cave .tile-media.fit-cover img { filter: brightness(.9); }
+.tile.cave:hover .tile-media.fit-cover img { filter: brightness(1.05); }
+@media (prefers-reduced-motion: reduce) { .cave-rim .vine, .cave-rim .cave-mush ellipse, .cave-flies span { animation: none !important; } }
+
+.nav { z-index: 100; }
