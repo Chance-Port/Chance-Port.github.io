@@ -598,7 +598,7 @@
     d.textContent = "";
     const paras = String(p.description || "").split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
     if (paras.length) paras.forEach(t => d.append(el("p", { text: t })));
-    else d.append(el("p", { text: "Full write-up coming soon." }));
+
     const link = $("[data-f-link]", back);
     link.hidden = !p.link;
     if (p.link) { link.href = p.link; link.textContent = /x\.com|twitter\.com/i.test(p.link) ? "View on X" : "View link"; }
@@ -694,11 +694,7 @@
     $("[data-v-cat]", viewer).textContent = realTitle(p) ? catText(p) : (catsOf(p).length > 1 ? catText(p) : styleOf(p));
     $("[data-v-title]", viewer).textContent = titleOf(p);
     statsFor(p, $("[data-stats=viewer]", viewer));
-    const desc = $("[data-v-desc]", viewer);
-    desc.textContent = "";
-    const paras = String(p.description || "").split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
-    if (paras.length) paras.forEach(t => desc.append(el("p", { text: t })));
-    else desc.append(el("p", { text: "Full write-up coming soon." }));
+    $("[data-v-desc]", viewer).textContent = "";   // no descriptions
     const link = $("[data-v-link]", viewer);
     link.hidden = !p.link;
     if (p.link) { link.href = p.link; link.textContent = /x\.com|twitter\.com/i.test(p.link) ? "View the post on X" : "View project"; }
@@ -1054,6 +1050,14 @@
   const xA = $("[data-x]");
   if (C.xUrl) { xA.href = C.xUrl; setText("[data-x-handle]", C.xHandle || C.xUrl.replace(/^https?:\/\/(www\.)?/, "")); }
   else xA.hidden = true;
+  if (C.discordServerUrl) {
+    const ds = $("[data-dserver]"); ds.hidden = false; ds.href = C.discordServerUrl;
+    setText("[data-dserver-handle]", C.discordServer || C.discordServerUrl.replace(/^https?:\/\//, ""));
+  }
+  if (C.instagramUrl) {
+    const ig = $("[data-ig]"); ig.hidden = false; ig.href = C.instagramUrl;
+    setText("[data-ig-handle]", C.instagram || "@" + C.instagramUrl.replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/[/?#].*$/, ""));
+  }
   if (C.email) { const m = $("[data-email]"); m.hidden = false; m.href = "mailto:" + C.email; setText("[data-email-value]", C.email); }
 
   function sparks(x, y) {

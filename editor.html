@@ -226,7 +226,9 @@
       h("h2", { text: "Contact" }),
       h("div", { class: "two" },
         field("Discord username", C, "discord"), field("Email (optional)", C, "email", { hint: "Leave empty to hide it." }),
-        field("X handle", C, "xHandle", { ph: "@Chancy2476" }), field("X profile link", C, "xUrl", { type: "url" }))));
+        field("X handle", C, "xHandle", { ph: "@Chancy2476" }), field("X profile link", C, "xUrl", { type: "url" }),
+        field("Discord portfolio (shown text)", C, "discordServer", { ph: "discord.gg/..." }), field("Discord portfolio invite link", C, "discordServerUrl", { type: "url", hint: "Leave empty to hide it." }),
+        field("Instagram handle", C, "instagram", { ph: "@aly_shans" }), field("Instagram link", C, "instagramUrl", { type: "url", hint: "Leave empty to hide it." }))));
 
     // categories + styles
     S.styles = S.styles || [];
@@ -278,7 +280,6 @@
             field("Title", p, "title", { after: v => title.textContent = v || "Untitled" }),
             field("Style", p, "style", { list: "styles", hint: "Like Stylized-Cel Shaded or Realistic" })),
           field("Category", p, "category", { list: "cats", hint: "Use group names. More than one? Separate with commas: Character Cosmetics, Weapons" }),
-          field("Description", p, "description", { area: true, hint: "Leave an empty line between paragraphs." }),
           h("div", { class: "two" },
             h("div", {}, field("Main picture or video", p, "image", { ph: "render.jpg or turntable.mp4", hint: "A picture, an .mp4/.webm video, or a YouTube link. Videos play silently on the wall.", after: th.upd }), th.img),
             h("div", {},
