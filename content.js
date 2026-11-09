@@ -49,7 +49,7 @@ window.SITE = {
   /* Titles and button text around the site */
   labels: {
     work: "Work",
-    workNote: "click a frame to flip it",
+    workNote: "click a project to open it",
     about: "About",
     howIWork: "What I do",
     badge: "Commissions open",

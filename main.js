@@ -198,59 +198,68 @@
   CATS.forEach(c => (c.subs || []).forEach(sb => { subOwner[sb.name] = c.name; }));
   const mainsOf = p => [...new Set(catsOf(p).map(c => subOwner[c] || c))];
   let n = 0;
+  // the work wall: bento tiles (picture over a soft blurred copy of itself, info on top)
+  function replay(card) { if (reduce) return; card.classList.remove("in"); void card.offsetWidth; card.classList.add("in"); }
   function makeCard(p, i) {
-    const tiltDeg = TILTS[n % TILTS.length];
-    const tilt = el("div", { class: "tilt" }, framed(cover(p), FRAMES[n % FRAMES.length]));
-    const hang = el("div", { class: "hang", style: `--tilt:${tiltDeg}deg` }, tilt);
-    whenHung(hang);
+    const first = mediaList(p)[0];
+    const bgSrc = first && kind(first) === "image" ? thumbSrc(first) : first && kind(first) === "yt" ? "https://i.ytimg.com/vi/" + ytId(first) + "/hqdefault.jpg" : "";
+    const media = el("div", { class: "tile-media" },
+      el("div", { class: "tile-bg", "aria-hidden": "true", style: bgSrc ? `background-image:url("${bgSrc.replace(/"/g, "")}")` : "" }),
+      cover(p));
+    const chip = catsOf(p).length ? el("span", { class: "chip", text: catText(p) }) : null;
+    const st = el("span", { class: "label-stats", hidden: "" });
     const card = el("a", {
-      class: "card" + (p.featured ? " featured" : ""), href: "#project-" + (i + 1), "data-index": i, "data-cat": catsOf(p).join("|"), "data-main": mainsOf(p).join("|"),
-      "aria-label": titleOf(p) + ", flip for details",
-      style: `--dy:${p.featured ? 0 : [0, 2.5, 1, 3, .5, 1.8][n % 6]}rem;--d:${(n % 3) * .14}s;--lt:${-tiltDeg}deg`
-    }, hang, el("div", { class: "label" }, el("span", { class: "label-title", text: realTitle(p) || catText(p) || "Untitled" }), realTitle(p) && catsOf(p).length ? el("span", { class: "label-cat", text: catText(p) }) : null));
-    card.addEventListener("click", e => { e.preventDefault(); openFlip(i, card); });
-    const art = $(".art", tilt);
-    // frame takes the real shape of the render (no black bars)
+      class: "card tile" + (p.featured ? " featured" : ""), href: "#project-" + (i + 1), "data-index": i,
+      "data-cat": catsOf(p).join("|"), "data-main": mainsOf(p).join("|"),
+      "aria-label": titleOf(p) + ", open project", style: `--d:${(n % 3) * .08}s`
+    },
+      media,
+      el("div", { class: "tile-info" },
+        el("div", { class: "tile-meta" }, chip, st),
+        el("h3", { class: "tile-title", text: realTitle(p) || (p.featured ? styleOf(p) : "") || catText(p) || "Untitled" })),
+      el("span", { class: "tile-open", "aria-hidden": "true", text: "View \u2197" }));
+    if (!realTitle(p)) $(".tile-title", card).classList.add("quiet");
+    card.addEventListener("click", e => { e.preventDefault(); openViewer(i, card, true); });
+    // fill the tile edge to edge when the picture's shape is close enough, otherwise show it whole
     card.addEventListener("load", e => {
       const im = e.target;
-      if (im.tagName !== "IMG" || !im.naturalWidth || im.classList.contains("cycling")) return;
-      const r = Math.min(2.1, Math.max(.75, im.naturalWidth / im.naturalHeight));
-      art.style.aspectRatio = r.toFixed(3);
-      art.classList.add("ready");
+      if (im.tagName !== "IMG" || !im.naturalWidth) return;
+      media.classList.add("ready");
+      if (im.classList.contains("cycling")) return;
+      const r = media.getBoundingClientRect(), tileR = r.width / Math.max(1, r.height), imgR = im.naturalWidth / im.naturalHeight;
+      media.classList.toggle("fit-cover", Math.abs(Math.log(imgR / tileR)) < .38);
     }, true);
     const pics = mediaList(p).filter(m => kind(m) === "image");
     if (pics.length > 1) {
-      art.append(el("span", { class: "pic-count", "aria-hidden": "true", text: "\u25A3 " + pics.length }));
+      media.append(el("span", { class: "pic-count", "aria-hidden": "true", text: "\u25A3 " + pics.length }));
       // hover flips through the project's other pictures
       if (finePointer && !reduce) {
-        let k = 0, timer = 0;
-        pics.slice(1).forEach(src => { const pre = new Image(); pre.src = thumbSrc(src); });
+        let k = 0, timer = 0, pre = false;
         const show = idx => {
-          const im = $("img", art); if (!im) return;
+          const im = $("img", media); if (!im) return;
           im.classList.add("cycling"); im.classList.remove("is-loaded");
           setTimeout(() => { im._fb = 0; im.src = thumbSrc(pics[idx]); im.onerror = () => { im.onerror = null; im.src = pics[idx]; }; }, 160);
         };
-        card.addEventListener("pointerenter", () => { clearInterval(timer); timer = setInterval(() => { k = (k + 1) % pics.length; show(k); }, 1100); });
+        card.addEventListener("pointerenter", () => {
+          if (!pre) { pre = true; pics.slice(1).forEach(src => { const x = new Image(); x.src = thumbSrc(src); }); }
+          clearInterval(timer); timer = setInterval(() => { k = (k + 1) % pics.length; show(k); }, 1100);
+        });
         card.addEventListener("pointerleave", () => { clearInterval(timer); if (k) { k = 0; show(0); } });
       }
     }
-    const lbl = $(".label", card);
-    const st = el("span", { class: "label-stats", hidden: "" });
-    lbl.append(st);
     cardStats[pid(p)] = st;
     statObs && statObs.observe(card);
     card._p = p;
+    // lantern-light spotlight + gentle tilt that follows the mouse
     if (finePointer && !reduce) {
-      const frame = $(".frame", tilt);
-      card.addEventListener("pointerenter", () => swing(hang));
       card.addEventListener("pointermove", e => {
-        const r = tilt.getBoundingClientRect();
-        const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
-        tilt.style.transform = `perspective(900px) rotateX(${(.5 - y) * 10}deg) rotateY(${(x - .5) * 12}deg) translateZ(12px)`;
-        frame.style.setProperty("--gx", x * 100 + "%");
-        frame.style.setProperty("--gy", y * 100 + "%");
+        const r = card.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+        card.style.setProperty("--mx", (x * 100).toFixed(1) + "%");
+        card.style.setProperty("--my", (y * 100).toFixed(1) + "%");
+        card.style.setProperty("--rx", ((.5 - y) * 5).toFixed(2) + "deg");
+        card.style.setProperty("--ry", ((x - .5) * 6).toFixed(2) + "deg");
       });
-      card.addEventListener("pointerleave", () => { tilt.style.transform = ""; });
+      card.addEventListener("pointerleave", () => { card.style.setProperty("--rx", "0deg"); card.style.setProperty("--ry", "0deg"); });
     }
     grid.append(card);
     n++;
@@ -277,12 +286,7 @@
         const show = (main === "All" || card.dataset.main.split("|").includes(main)) && (!sub || card.dataset.cat.split("|").includes(sub));
         const was = !card.classList.contains("hide");
         card.classList.toggle("hide", !show);
-        if (show && !reduce) {
-          const h = $(".hang", card);
-          h.classList.remove("hung", "swing");
-          card.style.setProperty("--d", (k++ % 3) * .08 + "s");
-          void h.offsetWidth;
-        }
+        if (show && !reduce) { card.style.setProperty("--d", (k++ % 3) * .06 + "s"); if (!was) replay(card); }
       });
       // hide a style title when none of its frames are showing
       $$(".style-head", grid).forEach(hd => {
@@ -327,7 +331,7 @@
     let sorting = false;
     const flipIn = () => {
       if (reduce) return;
-      $$(".card:not(.hide)", grid).forEach((c, k) => { const h = $(".hang", c); h.classList.remove("hung", "swing"); c.style.setProperty("--d", (k % 3) * .07 + "s"); void h.offsetWidth; });
+      $$(".card:not(.hide)", grid).forEach((c, k) => { c.style.setProperty("--d", (k % 3) * .05 + "s"); replay(c); });
     };
     const btns = [["d", "Default"], ["l", "Most liked"], ["v", "Most viewed"]].map(([k, t], idx) => {
       const b = el("button", { type: "button", "aria-pressed": idx ? "false" : "true", text: t });
@@ -562,7 +566,7 @@
   }
   function setClip(v) { ["--ct", "--cr", "--cb", "--cl"].forEach((k, n) => viewer.style.setProperty(k, v ? v[n] : "0px")); }
   function cardInset(i) {
-    const c = $('.card[data-index="' + i + '"] .frame');
+    const c = $('.card[data-index="' + i + '"]');
     if (!c) return null;
     const r = c.getBoundingClientRect();
     if (r.bottom < 0 || r.top > innerHeight || !r.width) return null;
