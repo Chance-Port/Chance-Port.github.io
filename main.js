@@ -190,8 +190,7 @@
   const all = projects.map((p, i) => ({ p, i }));
   const picks = all.filter(o => o.p.featured);
   const rest = all.filter(o => !o.p.featured);
-  const groups = [{ st: (SITE.labels || {}).topPicks || "Top picks", items: picks, top: true }].concat(
-    STYLES.length ? STYLES.map(st => ({ st, items: rest.filter(o => styleOf(o.p) === st) })) : [{ st: "", items: rest }]);
+  const groups = STYLES.length ? STYLES.map(st => ({ st, items: all.filter(o => styleOf(o.p) === st) })) : [{ st: "", items: all }];
   if (!projects.length) grid.append(el("p", { class: "grid-empty", text: "New work is on the way." }));
   const CATS = SITE.categories || [];
   const subOwner = {};
@@ -261,9 +260,90 @@
       });
       card.addEventListener("pointerleave", () => { card.style.setProperty("--rx", "0deg"); card.style.setProperty("--ry", "0deg"); });
     }
-    if (p.featured) caveify(card, media, i + 7);
+    if (p.featured) card.classList.add("pick-dup");
     grid.append(card);
     n++;
+  }
+
+  // Top picks spotlight: one big piece at a time, thumbnails underneath, auto-plays
+  function spotlight(list) {
+    const box = el("section", { class: "spotlight", "aria-roledescription": "carousel", "aria-label": (SITE.labels || {}).topPicks || "Top picks" });
+    const stage = el("div", { class: "sp-stage" });
+    const thumbs = el("div", { class: "sp-thumbs", role: "tablist", "aria-label": "Choose a top pick" });
+    const info = el("div", { class: "sp-info" });
+    const chip = el("span", { class: "chip" });
+    const title = el("p", { class: "sp-title" });
+    const stats = el("span", { class: "sp-stats" });
+    const count = el("span", { class: "sp-count" });
+    const open = el("button", { type: "button", class: "btn btn-red sp-open", text: "Open \u2197" });
+    info.append(el("div", { class: "sp-meta" }, chip, stats), title, el("div", { class: "sp-actions" }, open, count));
+    const slides = list.map(({ p, i }, k) => {
+      const first = mediaList(p)[0];
+      const bg = first && kind(first) === "image" ? thumbSrc(first) : "";
+      const slide = el("div", { class: "sp-slide" + (k ? "" : " on"), "aria-hidden": k ? "true" : "false" },
+        el("div", { class: "sp-bg", style: bg ? `background-image:url("${bg.replace(/"/g, "")}")` : "" }),
+        first && kind(first) === "image" ? image(first, titleOf(p), k === 0) : cover(p));
+      stage.append(slide);
+      const tb = el("button", { type: "button", class: "sp-thumb" + (k ? "" : " on"), role: "tab", "aria-selected": k ? "false" : "true", "aria-label": titleOf(p) },
+        el("img", { src: thumbSrc(first || ""), alt: "", loading: "lazy", decoding: "async" }), el("i", { class: "sp-bar" }));
+      tb.addEventListener("click", () => go(k, true));
+      thumbs.append(tb);
+      return slide;
+    });
+    const prev = el("button", { type: "button", class: "sp-arrow sp-prev", "aria-label": "Previous top pick", text: "\u2039" });
+    const next = el("button", { type: "button", class: "sp-arrow sp-next", "aria-label": "Next top pick", text: "\u203A" });
+    box.append(stage, info, prev, next, thumbs);
+    let cur = 0, timer = 0, paused = false;
+    const DUR = 5500;
+    function paint() {
+      const { p } = list[cur];
+      chip.textContent = realTitle(p) ? (catText(p) || styleOf(p)) : styleOf(p);
+      title.textContent = realTitle(p) || catText(p) || styleOf(p);
+      count.textContent = String(cur + 1).padStart(2, "0") + " / " + String(list.length).padStart(2, "0");
+      stats.textContent = "";
+      loadCounts(p).then(c => {
+        if (list[cur].p !== p || !c) return;
+        stats.textContent = (c.l != null ? "\u2665 " + fmtN(c.l) : "") + (c.l != null && c.v != null ? "  \u00B7  " : "") + (c.v != null ? "\uD83D\uDC41 " + fmtN(c.v) : "");
+      });
+      if (!reduce) info.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 450, easing: "ease-out" });
+    }
+    function go(k, user) {
+      k = (k + list.length) % list.length;
+      if (k !== cur) {
+        slides[cur].classList.remove("on"); slides[cur].setAttribute("aria-hidden", "true");
+        slides[k].classList.add("on"); slides[k].setAttribute("aria-hidden", "false");
+        $$(".sp-thumb", thumbs).forEach((t, n2) => { t.classList.toggle("on", n2 === k); t.setAttribute("aria-selected", n2 === k ? "true" : "false"); });
+        cur = k; paint();
+      }
+      restart();
+    }
+    function restart() {
+      clearTimeout(timer);
+      box.style.setProperty("--dur", DUR + "ms");
+      const bar = $(".sp-thumb.on .sp-bar", thumbs);
+      $$(".sp-bar", thumbs).forEach(b => b.classList.remove("run"));
+      if (reduce || paused || list.length < 2) return;
+      void bar.offsetWidth; bar.classList.add("run");
+      timer = setTimeout(() => go(cur + 1), DUR);
+    }
+    const openIt = () => openViewer(list[cur].i, null, true);
+    open.addEventListener("click", openIt);
+    stage.addEventListener("click", openIt);
+    prev.addEventListener("click", () => go(cur - 1, true));
+    next.addEventListener("click", () => go(cur + 1, true));
+    const pause = v => { paused = v; box.classList.toggle("paused", v); restart(); };
+    box.addEventListener("pointerenter", e => { if (e.pointerType === "mouse") pause(true); });
+    box.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") pause(false); });
+    box.addEventListener("focusin", () => pause(true));
+    box.addEventListener("focusout", e => { if (!box.contains(e.relatedTarget)) pause(false); });
+    box.addEventListener("keydown", e => { if (e.key === "ArrowRight") go(cur + 1, true); else if (e.key === "ArrowLeft") go(cur - 1, true); });
+    let sx = null;
+    stage.addEventListener("touchstart", e => { sx = e.touches[0].clientX; }, { passive: true });
+    stage.addEventListener("touchend", e => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 50) go(cur + (dx < 0 ? 1 : -1), true); sx = null; }, { passive: true });
+    // only run while it's on screen
+    if ("IntersectionObserver" in window) new IntersectionObserver(es => { const vis = es[0].isIntersecting; if (vis && !box._seen) { box._seen = true; paint(); } if (!vis) clearTimeout(timer); else if (!paused) restart(); }, { threshold: .3 }).observe(box);
+    else { paint(); restart(); }
+    return box;
   }
 
   // Top picks sit inside little caves: a rocky arch carved into the wall, moss, hanging vines, a warm glow
@@ -321,9 +401,13 @@
     card.insertBefore(rim, media.nextSibling);
     card.insertBefore(flies, rim.nextSibling);
   }
+  if (picks.length) {
+    grid.append(el("div", { class: "style-head top-head" }, el("span", { text: "\u2605 " + ((SITE.labels || {}).topPicks || "Top picks") })));
+    grid.append(spotlight(picks));
+  }
   groups.forEach(g => {
     if (!g.items.length) return;
-    if (g.st && groups.filter(x => x.items.length).length > 1) grid.append(el("div", { class: "style-head" + (g.top ? " top-head" : ""), "data-style": g.st }, el("span", { text: (g.top ? "\u2605 " : "") + g.st })));
+    if (g.st && (groups.filter(x => x.items.length).length > 1 || picks.length)) grid.append(el("div", { class: "style-head", "data-style": g.st }, el("span", { text: g.st })));
     g.items.forEach(({ p, i }) => makeCard(p, i));
   });
 
@@ -339,6 +423,7 @@
     const press = (row, btn) => $$("button", row).forEach(x => x.setAttribute("aria-pressed", x === btn ? "true" : "false"));
     function apply() {
       let k = 0;
+      grid.classList.toggle("filtered", main !== "All" || !!sub);
       $$(".card", grid).forEach(card => {
         const show = (main === "All" || card.dataset.main.split("|").includes(main)) && (!sub || card.dataset.cat.split("|").includes(sub));
         const was = !card.classList.contains("hide");
@@ -346,9 +431,10 @@
         if (show && !reduce) { card.style.setProperty("--d", (k++ % 3) * .06 + "s"); if (!was) replay(card); }
       });
       // hide a style title when none of its frames are showing
-      $$(".style-head", grid).forEach(hd => {
+      $$(".style-head:not(.top-head)", grid).forEach(hd => {
         let x = hd.nextElementSibling, any = false;
-        while (x && !x.classList.contains("style-head")) { if (!x.classList.contains("hide")) any = true; x = x.nextElementSibling; }
+        const filtered = grid.classList.contains("filtered");
+        while (x && !x.classList.contains("style-head")) { if (x.classList.contains("card") && !x.classList.contains("hide") && (filtered || !x.classList.contains("pick-dup"))) any = true; x = x.nextElementSibling; }
         hd.hidden = !any;
       });
     }
