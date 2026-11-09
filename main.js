@@ -168,8 +168,25 @@
       framed(art, ["", "black", ""][i], el("p", { class: "tool-name", text: t.name })));
     whenHung(hang);
     const tool = el("div", { class: "tool", style: `--n:${i}` }, el("div", { class: "sway", style: `--dur:${3.4 + i * .9}s;animation-delay:-${i * 1.3}s` }, hang));
-    tool.addEventListener("pointerenter", () => swing(hang));
-    tool.addEventListener("click", () => swing(hang));
+    // brand glow colour, 3D tilt that follows the mouse, a little spin when clicked
+    const BRAND = { mesh: "#F5792A", brush: "#9AE945", blocks: "#00A2FF", pencil: "#D9B97E" };
+    tool.style.setProperty("--brand", t.color || BRAND[toolKind(t.name)]);
+    tool.style.setProperty("--float", (3.6 + i * .7).toFixed(1) + "s");
+    if (finePointer && !reduce) {
+      tool.addEventListener("pointermove", e => {
+        const r = tool.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+        tool.style.setProperty("--trx", ((.5 - y) * 16).toFixed(1) + "deg");
+        tool.style.setProperty("--try", ((x - .5) * 18).toFixed(1) + "deg");
+        tool.style.setProperty("--gx", (x * 100).toFixed(0) + "%");
+        tool.style.setProperty("--gy", (y * 100).toFixed(0) + "%");
+      });
+      tool.addEventListener("pointerleave", () => { tool.style.setProperty("--trx", "0deg"); tool.style.setProperty("--try", "0deg"); });
+    }
+    tool.addEventListener("click", () => {
+      if (reduce) return;
+      const logo = $(".art img, .art svg", tool);
+      if (logo) logo.animate([{ transform: "scale(1) rotate(0)" }, { transform: "scale(1.25) rotate(200deg)", offset: .5 }, { transform: "scale(1) rotate(360deg)" }], { duration: 750, easing: "cubic-bezier(.34,1.56,.64,1)" });
+    });
     toolWall.append(tool);
   });
 

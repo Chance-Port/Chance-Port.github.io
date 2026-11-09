@@ -871,3 +871,33 @@ main, .nav, .progress { position: relative; z-index: 2; }
 @media (max-width: 760px) { .sp-info { top: 0; bottom: auto; height: 420px; left: 1.2rem; } }
 
 .viewer-desc:empty, .back-desc:empty { display: none; }
+
+/* =========================================================
+   SOFTWARE TILES with the real logos
+   ========================================================= */
+.tool { perspective: 700px; }
+.tool .frame {
+  position: relative; overflow: hidden;
+  background: linear-gradient(160deg, rgba(28, 50, 48, .92), rgba(9, 19, 19, .96));
+  box-shadow: inset 0 0 0 1px rgba(232, 220, 196, .14), 0 18px 34px -18px rgba(0, 0, 0, .95);
+  transform: rotateX(var(--trx, 0deg)) rotateY(var(--try, 0deg));
+  transition: transform .45s var(--ease), box-shadow .4s;
+}
+/* soft brand-coloured light behind the logo */
+.tool .frame::before { content: ""; position: absolute; inset: -30%; z-index: 0; background: radial-gradient(circle at var(--gx, 50%) var(--gy, 40%), color-mix(in srgb, var(--brand) 38%, transparent), transparent 55%); opacity: .45; transition: opacity .4s; }
+/* shine that sweeps across on hover */
+.tool .frame::after { display: block !important; content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, .16) 48%, transparent 60%); transform: translateX(-120%); }
+.tool:hover .frame::after { transform: translateX(120%); transition: transform .9s ease; }
+.tool:hover .frame { transform: translateY(-6px) rotateX(var(--trx, 0deg)) rotateY(var(--try, 0deg)); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--brand) 80%, transparent), 0 0 34px -6px color-mix(in srgb, var(--brand) 60%, transparent), 0 24px 40px -18px rgba(0, 0, 0, .95); }
+.tool:hover .frame::before { opacity: 1; }
+.tool .mat { position: relative; z-index: 1; background: transparent; padding: 14% 14% 9%; }
+.tool .art { background: transparent; overflow: visible; }
+.tool .art img { width: 76%; height: 76%; object-fit: contain; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .55)); animation: logoFloat var(--float, 4s) ease-in-out infinite alternate; transition: transform .5s var(--spring), filter .4s; }
+.tool:hover .art img { transform: scale(1.12); filter: drop-shadow(0 0 16px color-mix(in srgb, var(--brand) 70%, transparent)) drop-shadow(0 10px 16px rgba(0, 0, 0, .6)); }
+@keyframes logoFloat { from { translate: 0 3px; rotate: -2deg; } to { translate: 0 -4px; rotate: 2deg; } }
+.tool .tool-name { color: var(--parch); }
+.tool:hover .tool-name { color: color-mix(in srgb, var(--brand) 55%, var(--parch)); }
+.tool { cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .tool .art img { animation: none; } .tool .frame::after { display: none !important; } }
+
+.tool .tool-name { min-height: 2.3em; display: flex; align-items: center; justify-content: center; }
